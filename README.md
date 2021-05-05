@@ -8,8 +8,8 @@ to track and free memory oneself is duplication of effort.
 RooStats and its HistFitter extensions operate under this design.
 We must therefore ensure short lives to our programs using them.
 
-This module executes leaky code to simulate 'toys' in small batches through a
-`multiprocessing.Pool`, which frees resources after each batch.
+We execute leaky code to simulate small batches of toys in a
+pool of processes which frees resources after each batch.
 
 
 ### Usage
