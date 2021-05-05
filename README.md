@@ -4,8 +4,7 @@ Freely allocate memory, and let the operating systems clean up.
 
 This is an efficient design pattern for short-lived programs.
 
-to track and free memory oneself is duplication of effort.
-
+To track and free memory oneself is duplication of effort.
 
 RooStats and its HistFitter extensions operate under this design.
 
@@ -28,6 +27,44 @@ Make discovery p-values with `test`.
 Combine results with `-load`.
 
 Make plots and tables with with `output`.
+
+
+### Examples
+
+#### Toys
+```bash
+python upper_limit_results.py invert test \
+-filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
+-prefix results/disc1/example \
+-poi mu_Discovery \
+-lumi 139 \
+-points 0 30 6 \
+-ntoys 3000 \
+-nbatch 100 \
+-seed 1
+```
+
+```bash
+python upper_limit_results.py output \
+-prefix results/disc1/example \
+-load results/disc1/example_dump.pickle \
+-poi mu_Discovery \
+-lumi 139 \
+-channel DRInt
+```
+
+#### Asymptotic approximation
+```bash
+./upper_limit_results.py invert test output \
+-filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
+-prefix results/disc1/example_asym \
+-poi mu_Discovery \
+-lumi 139 \
+-channel DRInt \
+-points 0 30 6 \
+-calculator asymptotic
+```
+
 
 #### Help
 ```
@@ -75,42 +112,4 @@ optional arguments:
   -cl CL                Level for 'upper limits', in [0, 1].
   -splusb               Use 'CLs+b' for 'upper limits'; do not use CLs.
   -channel CHANNEL      Channel name for `output' tex tables.
-```
-
-
-
-
-
-### Example using asymptotic approximation
-```bash
-./upper_limit_results.py invert test output \
--filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example_asym \
--poi mu_Discovery \
--lumi 139 \
--channel DRInt \
--points 0 30 6 \
--calculator asymptotic
-```
-
-### Example using toys
-```bash
-python upper_limit_results.py invert test \
--filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example \
--poi mu_Discovery \
--lumi 139 \
--points 0 30 6 \
--ntoys 3000 \
--nbatch 100 \
--seed 1
-```
-
-```bash
-python upper_limit_results.py output \
--prefix results/disc1/example \
--load results/disc1/example_dump.pickle \
--poi mu_Discovery \
--lumi 139 \
--channel DRInt
 ```
