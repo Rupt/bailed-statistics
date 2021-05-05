@@ -94,7 +94,7 @@ optional arguments:
   -points POINTS POINTS POINTS
                         (start, stop, count) to linearly space points; for
                         `invert'.
-  -ntoys NTOYS          Number of `toys' to simulate.
+  -ntoys NTOYS          Number of toys to simulate.
   -seed SEED            Random seed in [0, 2**16); make yours unique. If None,
                         use a mix of time and process id.
   -nbatch NBATCH        Batch size for toys. Reduce to cut memory usage.
@@ -108,6 +108,6 @@ optional arguments:
   -statistic STATISTIC  Test statistic type from
                         bailed_roostats.TestStatistic.
   -cl CL                Level for 'upper limits', in [0, 1].
-  -splusb               Use 'CLs+b' for 'upper limits'; do not use CLs.
+  -splusb               Use CLs+b for 'upper limits'; do not use CLs.
   -channel CHANNEL      Channel name for `output' tex tables.
 ```
