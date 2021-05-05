@@ -15,6 +15,7 @@ multiprocessing.Pool which frees resources after each batch.
 Each batch executes with a unique random seed; the user must provide a unique
 random seed for each call.
 
+
 # Interface
 
 Our primary tools are hypo_test_inversion(...) and hypo_test(...).
@@ -22,6 +23,8 @@ Our primary tools are hypo_test_inversion(...) and hypo_test(...).
 CalculatorType, TestStatistic and FitType are enums for configuration.
 
 Bailed execution is done through mapbailreduce(...).
+
+Execute this script to run some tests of utility functions.
 
 
 # "Bailed"
