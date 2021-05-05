@@ -157,14 +157,14 @@ def main():
     parser.add_argument("-nbatch", type=int, default=10,
                         help="Batch size for toys. Reduce to cut memory usage.")
 
-    parser.add_argument("-processes", type=int, default=None,
-                        help="Number of processes for generating toys. "
-                             "By default, use min(cpu count, 16).")
+    parser.add_argument("-processes", type=int, default=32,
+                        help="Maximum of processes for generating toys. "
+                             "Also capped by your cpu count.")
 
     parser.add_argument("-calculator", type=str, default="frequentist",
                         help="Calculator type in "
                              "{frequentist, hybrid, asymptotic, asimov}; "
-                             "from bailed_roostats.CalculatorType. "
+                             "see bailed_roostats.CalculatorType. "
                              "frequentist is standard with toys. "
                              "asymptotic is standard without toys.")
 
@@ -190,8 +190,7 @@ def main():
     args.points[2] = int(args.points[2])
     args.cls = not args.splusb
 
-    if args.processes is None:
-        args.processes = min(multiprocessing.cpu_count(), 16)
+    args.processes = min(multiprocessing.cpu_count(), args.processes)
 
     if args.seed is None:
         args.seed = make_seed()
