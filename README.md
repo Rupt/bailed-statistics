@@ -98,11 +98,11 @@ optional arguments:
   -seed SEED            Random seed in [0, 2**16); make yours unique. If None,
                         use a mix of time and process id.
   -nbatch NBATCH        Batch size for toys. Reduce to cut memory usage.
-  -processes PROCESSES  Number of processes for generating toys. By default,
-                        use min(cpu count, 16).
+  -processes PROCESSES  Maximum of processes for generating toys. Also capped
+                        by your cpu count.
   -calculator CALCULATOR
                         Calculator type in {frequentist, hybrid, asymptotic,
-                        asimov}; from bailed_roostats.CalculatorType.
+                        asimov}; see bailed_roostats.CalculatorType.
                         frequentist is standard with toys. asymptotic is
                         standard without toys.
   -statistic STATISTIC  Test statistic type from
