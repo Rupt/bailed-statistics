@@ -2,12 +2,10 @@
 
 Freely allocate memory, and let the operating systems clean up.
 
-This is an efficient design pattern for short-lived programs.
-
-To track and free memory oneself is duplication of effort.
+This is an efficient design pattern for short-lived programs;
+to track and free memory oneself is duplication of effort.
 
 RooStats and its HistFitter extensions operate under this design.
-
 We must therefore ensure short lives to our programs using them.
 
 This module executes leaky code to simulate 'toys' in small batches through a

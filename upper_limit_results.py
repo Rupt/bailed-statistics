@@ -14,13 +14,9 @@ This script executes in three operations:
     output:
         Dump plots and results table.
 
-Results from `invert' and `test' are serialized, and may be combined in future
-outputs with the -load argument.
+Results from `invert' and `test' are serialized.
 
-
-# Help
-
-./upper_limit_results.py -h
+Combine serialized results with the -load argument.
 
 
 # Example using asymptotic approximation
@@ -50,10 +46,15 @@ python upper_limit_results.py invert test \
 
 python upper_limit_results.py output \
 -prefix results/disc1/example \
--load results/disc1/example_dump.pickle \
+-load results/disc1/example*_dump.pickle \
 -poi mu_Discovery \
 -lumi 139 \
 -channel DRInt
+
+
+# Help
+
+./upper_limit_results.py -h
 
 
 # Author's note
@@ -147,7 +148,7 @@ def main():
                              "for `invert'.")
 
     parser.add_argument("-ntoys", type=int, default=3000,
-                        help="Number of `toys' to simulate.")
+                        help="Number of toys to simulate.")
 
     parser.add_argument("-seed", type=int, default=None,
                         help="Random seed in [0, 2**16); make yours unique. "
@@ -175,7 +176,7 @@ def main():
                         help="Level for 'upper limits', in [0, 1].")
 
     parser.add_argument("-splusb", action="store_true",
-                        help="Use 'CLs+b' for 'upper limits'; do not use CLs.")
+                        help="Use CLs+b for 'upper limits'; do not use CLs.")
 
     parser.add_argument("-channel", type=str, default="DR-WHO",
                         help="Channel name for `output' tex tables.")
