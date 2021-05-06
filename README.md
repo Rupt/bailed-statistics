@@ -1,4 +1,4 @@
-# Upper limits with finite memory
+# Upper limits with limited memory
 
 Freely allocate memory, and let the operating systems clean up.
 
