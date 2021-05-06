@@ -321,11 +321,9 @@ def output(args, invert_result, test_result):
     visexp_up = invert_result.GetExpectedUpperLimit(1)
     visexp_down = invert_result.GetExpectedUpperLimit(-1)
 
-    # Use linear interpolation to estimate CLb at visobs.
     xs = sorted(map(invert_result.GetXValue, range(invert_result.ArraySize())))
 
     if xs[0] <= visobs <= xs[-1]:
-        # Interpolate to find clb at limit
         ihi = bisect.bisect_right(xs, visobs)
         xhi = xs[max(ihi, len(xs) - 1)]
         xlo = xs[ihi - 1]
