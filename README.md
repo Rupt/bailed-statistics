@@ -81,38 +81,37 @@ usage: upper_limit_results.py [-h] [-lumi LUMI] [-prefix PREFIX]
 Interpret discovery fit workspaces.
 
 positional arguments:
-  operation             Instructions from {invert output test}; `invert' scans
+  operation             instructions from {invert output test}; `invert' scans
                         for upper limits; `test' samples for the discovery
-                        p-value; `output' dumps the plots and table.
+                        p-value; `output' dumps the plots and table
 
 optional arguments:
   -h, --help            show this help message and exit
-  -lumi LUMI            Luminosity in inverse femtobarns.
-  -prefix PREFIX        Output file paths' prefix.
+  -lumi LUMI            luminosity in inverse femtobarns
+  -prefix PREFIX        output file paths' prefix
   -load [LOAD [LOAD ...]]
-                        Filenames of pickled results from previous runs of
-                        `invert or `test'; to combine for `output'.
-  -filename FILENAME    File path from which to get the workspace.
-  -workspace WORKSPACE  Workspace name to get from the input file.
-  -poi POI              Parameter Of Interest name in the workspace.
+                        filenames of pickled results from previous runs of
+                        `invert or `test'; to combine for `output'
+  -filename FILENAME    file path from which to get the workspace
+  -workspace WORKSPACE  workspace name to get from the input file
+  -poi POI              parameter of interest name in the workspace
   -points START STOP COUNT
-                        Linear spacing of POI points; for `invert'.
-  -ntoys NTOYS          Number of toys to simulate.
-  -seed SEED            Random seed in [0, 2**16); make yours unique. If None,
-                        we use a mix of time and process id.
-  -nbatch NBATCH        Batch size for toys. Reduce to cut memory usage.
-  -processes PROCESSES  Maximum number of processes for generating toys. Also
-                        capped by your cpu count.
+                        linear spacing of poi points; for `invert'
+  -ntoys NTOYS          number of toys to simulate
+  -seed SEED            random seed in [0, 2**16); make yours unique; if None,
+                        we use a mix of time and process id
+  -nbatch NBATCH        batch size for toys. Reduce to cut memory usage
+  -processes PROCESSES  maximum number of processes for generating toys; also
+                        capped by your cpu count
   -calculator CALCULATOR
-                        Calculator type in {frequentist, hybrid, asymptotic,
-                        asimov}; see bailed_roostats.CalculatorType.
-                        frequentist is standard with toys. asymptotic is
-                        standard without toys.
-  -statistic STATISTIC  Test statistic type from
-                        bailed_roostats.TestStatistic.
-  -channel CHANNEL      Channel name for the `output' tex table.
-  -cl CL                Level for 'upper limits', in [0, 1].
-  -splusb               Use CLs+b for 'upper limits'; do not use CLs.
+                        calculator type in {frequentist, hybrid, asymptotic,
+                        asimov}; see bailed_roostats.CalculatorType;
+                        frequentist is standard with toys; asymptotic is
+                        standard without toys
+  -statistic STATISTIC  test statistic type from bailed_roostats.TestStatistic
+  -channel CHANNEL      channel name for the `output' tex table
+  -cl CL                level for 'upper limits', in [0, 1]
+  -splusb               use CLs+b for 'upper limits'; do not use CLs
 ```
 
 

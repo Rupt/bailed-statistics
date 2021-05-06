@@ -122,69 +122,69 @@ def main():
     parser = argparse.ArgumentParser(description="Interpret discovery fit workspaces.")
 
     parser.add_argument("operation", type=Operation, nargs="+",
-                        help="Instructions from {%s}; " % OPERATIONS +
+                        help="instructions from {%s}; " % OPERATIONS +
                              "`invert' scans for upper limits; "
                              "`test' samples for the discovery p-value; "
-                             "`output' dumps the plots and table.")
+                             "`output' dumps the plots and table")
 
     parser.add_argument("-lumi", type=float, default=0,
-                        help="Luminosity in inverse femtobarns.")
+                        help="luminosity in inverse femtobarns")
 
     parser.add_argument("-prefix", type=str,
                         default="results/foo/bar_disco",
-                        help="Output file paths' prefix.")
+                        help="output file paths' prefix")
 
     parser.add_argument("-load", type=str, nargs="*", default=[],
-                        help="Filenames of pickled results from previous runs "
-                             "of `invert or `test'; to combine for `output'.")
+                        help="filenames of pickled results from previous runs "
+                             "of `invert or `test'; to combine for `output'")
 
     parser.add_argument("-filename", type=str,
                         default="results/foo/bar_combined_NormalMeasurement_model.root",
-                        help="File path from which to get the workspace.")
+                        help="file path from which to get the workspace")
 
     parser.add_argument("-workspace", type=str, default="combined",
-                        help="Workspace name to get from the input file.")
+                        help="workspace name to get from the input file")
 
     parser.add_argument("-poi", type=str, default="mu_SIG",
-                        help="Parameter Of Interest name in the workspace.")
+                        help="parameter of interest name in the workspace")
 
     parser.add_argument("-points", type=float, nargs=3, default=[0.0, 40.0, 20],
                         metavar=("START", "STOP", "COUNT"),
-                        help="Linear spacing of POI points; for `invert'.")
+                        help="linear spacing of poi points; for `invert'")
 
     parser.add_argument("-ntoys", type=int, default=3000,
-                        help="Number of toys to simulate.")
+                        help="number of toys to simulate")
 
     parser.add_argument("-seed", type=int, default=None,
-                        help="Random seed in [0, 2**16); make yours unique. "
-                             "If None, we use a mix of time and process id.")
+                        help="random seed in [0, 2**16); make yours unique; "
+                             "if None, we use a mix of time and process id")
 
     parser.add_argument("-nbatch", type=int, default=10,
-                        help="Batch size for toys. Reduce to cut memory usage.")
+                        help="batch size for toys. Reduce to cut memory usage")
 
     parser.add_argument("-processes", type=int, default=32,
-                        help="Maximum number of processes for generating toys. "
-                             "Also capped by your cpu count.")
+                        help="maximum number of processes for generating toys; "
+                             "also capped by your cpu count")
 
     parser.add_argument("-calculator", type=str, default="frequentist",
-                        help="Calculator type in "
+                        help="calculator type in "
                              "{frequentist, hybrid, asymptotic, asimov}; "
-                             "see bailed_roostats.CalculatorType. "
-                             "frequentist is standard with toys. "
-                             "asymptotic is standard without toys.")
+                             "see bailed_roostats.CalculatorType; "
+                             "frequentist is standard with toys; "
+                             "asymptotic is standard without toys")
 
     parser.add_argument("-statistic", type=str, default="profile_likelihood_one_sided",
-                        help="Test statistic type "
-                             "from bailed_roostats.TestStatistic.")
+                        help="test statistic type "
+                             "from bailed_roostats.TestStatistic")
 
     parser.add_argument("-channel", type=str, default="DR-WHO",
-                        help="Channel name for the `output' tex table.")
+                        help="channel name for the `output' tex table")
 
     parser.add_argument("-cl", type=float, default=0.95,
-                        help="Level for 'upper limits', in [0, 1].")
+                        help="level for 'upper limits', in [0, 1]")
 
     parser.add_argument("-splusb", action="store_true",
-                        help="Use CLs+b for 'upper limits'; do not use CLs.")
+                        help="use CLs+b for 'upper limits'; do not use CLs")
 
     args = parser.parse_args()
 
