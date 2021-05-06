@@ -119,102 +119,89 @@ OPERATIONS = " ".join(op.name for op in Operation)
 
 def main():
     """ Interpret the user's incantations. """
-    parser = argparse.ArgumentParser(description="Interpret discovery fit workspaces.")
+    parser = argparse.ArgumentParser(
+        description="Make plots and tables for discovery fit statistics.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
-    parser.add_argument("operation", type=Operation, nargs="+",
+    parser.add_argument("operations", type=Operation, nargs="+",
                         help="instructions from {%s}; " % OPERATIONS +
                              "`invert' scans for upper limits; "
                              "`test' samples for the discovery p-value; "
                              "`output' dumps the plots and table")
-
-    parser.add_argument("-lumi", type=float, default=0,
+    parser.add_argument("-lumi", type=float,
                         help="luminosity in inverse femtobarns")
-
     parser.add_argument("-prefix", type=str,
-                        default="results/foo/bar_disco",
                         help="output file paths' prefix")
-
     parser.add_argument("-load", type=str, nargs="*", default=[],
                         help="filenames of pickled results from previous runs "
-                             "of `invert or `test'; to combine for `output'")
-
+                             "to combine; for `output'")
     parser.add_argument("-filename", type=str,
-                        default="results/foo/bar_combined_NormalMeasurement_model.root",
-                        help="file path from which to get the workspace")
-
+                        help="workspace file path")
     parser.add_argument("-workspace", type=str, default="combined",
-                        help="workspace name to get from the input file")
-
+                        help="workspace name in its file")
     parser.add_argument("-poi", type=str, default="mu_SIG",
-                        help="parameter of interest name in the workspace")
-
+                        help="parameter of interest name")
     parser.add_argument("-points", type=float, nargs=3, default=[0.0, 40.0, 20],
                         metavar=("START", "STOP", "COUNT"),
-                        help="linear spacing of poi points; for `invert'")
-
+                        help="inclusive linear spacing of poi points; "
+                             "for `invert'")
     parser.add_argument("-ntoys", type=int, default=3000,
                         help="number of toys to simulate")
-
     parser.add_argument("-seed", type=int, default=None,
                         help="random seed in [0, 2**16); make yours unique; "
                              "if None, we use a mix of time and process id")
-
     parser.add_argument("-nbatch", type=int, default=10,
                         help="batch size for toys; reduce to cut memory usage")
-
-    parser.add_argument("-processes", type=int, default=32,
+    parser.add_argument("-processes", type=int, default=16,
                         help="maximum number of processes for generating toys; "
                              "also capped by your cpu count")
-
     parser.add_argument("-calculator", type=str, default="frequentist",
                         help="calculator type in "
                              "{frequentist, hybrid, asymptotic, asimov}; "
                              "see bailed_roostats.CalculatorType; "
                              "frequentist is standard with toys; "
                              "asymptotic is standard without toys")
-
-    parser.add_argument("-statistic", type=str, default="profile_likelihood_one_sided",
+    parser.add_argument("-statistic", type=str,
+                        default="profile_likelihood_one_sided",
                         help="test statistic type "
                              "from bailed_roostats.TestStatistic")
-
     parser.add_argument("-channel", type=str, default="DR-WHO",
-                        help="channel name for the `output' tex table")
-
+                        help="channel name for the tex table")
     parser.add_argument("-cl", type=float, default=0.95,
-                        help="level for 'upper limits', in [0, 1]")
-
+                        help="level for 'upper limits', in (0, 1)")
     parser.add_argument("-splusb", action="store_true",
-                        help="use CLs+b for 'upper limits'; do not use CLs")
+                        help="use CLs+b for limits; do not use CLs")
 
     args = parser.parse_args()
 
     # Prepare arguments.
     assert args.lumi > 0
-    assert 0 <= args.cl <= 1
-    assert args.points[2] == int(args.points[2]), "Point count must be integral"
+    assert 0 < args.cl < 1
+    assert args.points[2] == int(args.points[2]), "count must be integral"
     args.points[2] = int(args.points[2])
-    args.cls = not args.splusb
-
     args.processes = min(multiprocessing.cpu_count(), args.processes)
+    assert args.processes > 0
+    args.cls = not args.splusb
 
     if args.seed is None:
         args.seed = make_seed()
 
-    if args:
-        from bailed_roostats import CalculatorType, TestStatistic
-        args.calculator = CalculatorType[args.calculator]
-        args.statistic = TestStatistic[args.statistic]
+    from bailed_roostats import CalculatorType, TestStatistic
 
-        execute(args)
+    args.calculator = CalculatorType[args.calculator]
+    args.statistic = TestStatistic[args.statistic]
+
+    execute(args)
 
 
 def execute(args):
     """ Run our operations for given args namespace, as produced by main(). """
     from bailed_roostats import root_dumps
 
-    do_invert = Operation.invert in args.operation
-    do_test = Operation.test in args.operation
-    do_output = Operation.output in args.operation
+    do_invert = Operation.invert in args.operations
+    do_test = Operation.test in args.operations
+    do_output = Operation.output in args.operations
 
     # Prepare and dump new results.
     if do_invert:
@@ -312,7 +299,7 @@ def output(args, invert_result, test_result):
         raise ValueError("No `test' result loaded.")
 
     # Inversion
-    # Exclusion cleanup (source shows this only assumes asymptotic calculator)
+    # Exclusion cleanup (errors if not asymptotic calculator)
     if args.calculator is CalculatorType.asymptotic:
         nremoved = invert_result.ExclusionCleanup()
         if nremoved > 0:
@@ -489,7 +476,7 @@ def textable(
     else:
         prescription = r"$\mathrm{CL_{s + b}}$"
 
-    # "... test statistics" as taken from RooStats docs and one-sided code.
+    # Test statisric text; meaning taken from RooStats docs and source code.
     if statistic is TestStatistic.simple_likelihood_ratio:
         statistic_text = (r"All results use the simple likelihood ratio "
                           r"test statistic. ")
@@ -508,7 +495,7 @@ def textable(
         raise ValueError("statistic must be in bailed_roostats.TestStatistic; "
                          "got %r" % statistic)
 
-    # "p-values are estimated by ..." as taken from RooStats docs
+    # Calculator text; meaning taken from RooStats docs
     if calculator is CalculatorType.frequentist:
         calculator_text = (
             r"sampling the test statistic distribution with nuisance "
@@ -525,7 +512,7 @@ def textable(
         )
     elif calculator is CalculatorType.asimov:
         calculator_text = (
-            r"their asymptotic approximation with Asimov data obtained from "
+            r"their asymptotic approximation with Asimov data obtained with "
             r"nuisance parameters set to their nominal values"
         )
     else:
@@ -552,6 +539,7 @@ def textable(
         r"with its equivalent significance.\n "
         r"Limits use the %s prescription.\n " % prescription +
         r"%s\n " % statistic_text +
+        r"All p-values are estimated by\n %s.\n " % calculator_text +
         r"}\n "
         r"\label{tab:results.discoxsec.%s}\n " % channel +
         r"\end{table}\n"
