@@ -160,7 +160,7 @@ def main():
                              "if None, we use a mix of time and process id")
 
     parser.add_argument("-nbatch", type=int, default=10,
-                        help="batch size for toys. Reduce to cut memory usage")
+                        help="batch size for toys; reduce to cut memory usage")
 
     parser.add_argument("-processes", type=int, default=32,
                         help="maximum number of processes for generating toys; "
