@@ -16,15 +16,11 @@ pool of processes which frees resources after each batch.
 
 Set up your normal HistFitter environment.
 
-Point the `upper_limit_results.py` to your discovery workspace.
+Point `upper_limit_results.py` to your discovery workspace.
 
-Make upper limit results with `invert`.
+Make upper limit results with `invert` and discovery p-values with `test`.
 
-Make discovery p-values with `test`.
-
-Combine results with `-load`.
-
-Make plots and tables with with `output`.
+Make plots and tables with with `output` with results combined by `-load`.
 
 
 ## Examples
