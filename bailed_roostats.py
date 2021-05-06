@@ -89,7 +89,6 @@ class CalculatorType(enum.Enum):
 TOY_CALCULATORS = {CalculatorType.frequentist, CalculatorType.hybrid}
 
 
-
 class TestStatistic(enum.Enum):
     """ Labels for HistFitter HypoTestTool SetupHypoTestCalculator.
 
