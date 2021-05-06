@@ -76,7 +76,7 @@ Examples of false or unclear presentations of a p-value or CLs include:
 
 Please also respect that the association of a p-value or CLs with and of the
 words 'test', 'limit', 'confidence', 'significance', 'exclusion', 'evidence',
-'observation' or 'discovery' is nominal, and does not correspond to the words'
+'observation' or 'discovery' is nominal, and may not reflect the words'
 meanings in English.
 
 Rupert Tombs 2021
