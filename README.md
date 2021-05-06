@@ -1,4 +1,4 @@
-# Discovery / Upper Limits with finite memory
+# Upper Limits with finite memory
 
 Freely allocate memory, and let the operating systems clean up.
 
@@ -12,7 +12,7 @@ We execute leaky code to simulate small batches of toys in a
 pool of processes which frees resources after each batch.
 
 
-### Usage
+## Usage
 
 Set up your normal HistFitter environment.
 
@@ -27,11 +27,11 @@ Combine results with `-load`.
 Make plots and tables with with `output`.
 
 
-### Examples
+## Examples
 
-#### Toys
+### Toys
 ```bash
-python upper_limit_results.py invert test \
+./upper_limit_results.py invert test \
 -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
 -prefix results/disc1/example \
 -poi mu_Discovery \
@@ -42,16 +42,18 @@ python upper_limit_results.py invert test \
 -seed 1
 ```
 
+... optionally make more with different `-prefix` and `-seed` ...
+
 ```bash
-python upper_limit_results.py output \
+./upper_limit_results.py output \
 -prefix results/disc1/example \
--load results/disc1/example_dump.pickle \
+-load results/disc1/example*_dump.pickle \
 -poi mu_Discovery \
 -lumi 139 \
 -channel DRInt
 ```
 
-#### Asymptotic approximation
+### Asymptotics
 ```bash
 ./upper_limit_results.py invert test output \
 -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
@@ -64,7 +66,7 @@ python upper_limit_results.py output \
 ```
 
 
-#### Help
+## Help
 ```
 usage: upper_limit_results.py [-h] [-lumi LUMI] [-prefix PREFIX]
                               [-load [LOAD [LOAD ...]]] [-filename FILENAME]

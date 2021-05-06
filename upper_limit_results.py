@@ -33,7 +33,7 @@ Combine serialized results with the -load argument.
 
 # Example using toys
 
-python upper_limit_results.py invert test \
+./upper_limit_results.py invert test \
 -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
 -prefix results/disc1/example \
 -poi mu_Discovery \
@@ -44,7 +44,7 @@ python upper_limit_results.py invert test \
 -seed 1
 
 
-python upper_limit_results.py output \
+./upper_limit_results.py output \
 -prefix results/disc1/example \
 -load results/disc1/example*_dump.pickle \
 -poi mu_Discovery \
