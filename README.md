@@ -113,3 +113,26 @@ optional arguments:
   -splusb               Use CLs+b for 'upper limits'; do not use CLs.
   -channel CHANNEL      Channel name for `output' tex tables.
 ```
+
+
+## Absolution
+
+Hypotheses compare through the relative likelihoods they assign to data.
+
+A p-value is a cumulative distribution function evaluated at data; CLs is a
+ratio of p-values.
+
+Please present results of this software accurately and clearly.
+Examples of false or unclear presentations of a p-value or CLs include:
+
+ - as a probability that an hypothesis is true or false,
+ - as a probability of compatibility with an hypothesis,
+ - as a probability that data occurred at random, by chance, or by
+   statistical fluctuation,
+ - as a likelihood or importance of data,
+ - as necessary for an optimal or rational decision rule.
+
+Please also respect that the association of a p-value or CLs with and of the
+words 'test', 'limit', 'confidence', 'significance', 'exclusion', 'evidence',
+'observation' or 'discovery' is nominal, and does not correspond to the words'
+meanings in English.

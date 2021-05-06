@@ -57,25 +57,27 @@ Combine serialized results with the -load argument.
 ./upper_limit_results.py -h
 
 
-# Author's note
-Hypotheses compare through the relative likelihoods they assign to statistics.
+# Absolution
 
-p-values are cumulative distribution functions evaluated at statistics.
-CLs-values are ratios of p-values.
+Hypotheses compare through the relative likelihoods they assign to data.
 
-Please present results of this software accurately and clearly. Examples of
-false or unclear presentations of a p- or CLs-value include:
+A p-value is a cumulative distribution function evaluated at data; CLs is a
+ratio of p-values.
 
-    - as a probability that an hypothesis is true or false,
-    - as a probability of compatibility with an hypothesis,
-    - as a probability that an observation occurred at random, by chance, or by
-      statistical fluctuation,
-    - as a significance, size, likelihood, or importance of an observation,
-    - as necessary for an optimal or rational decision rule.
+Please present results of this software accurately and clearly.
+Examples of false or unclear presentations of a p-value or CLs include:
 
-Please also be clear that association of a p- or CLs-value with the words
-'limit', `confidence', `significance', `exclusion', `evidence', `observation',
-or `discovery' is nominal, and not with the words' meanings in English.
+ - as a probability that an hypothesis is true or false,
+ - as a probability of compatibility with an hypothesis,
+ - as a probability that data occurred at random, by chance, or by
+   statistical fluctuation,
+ - as a likelihood or importance of data,
+ - as necessary for an optimal or rational decision rule.
+
+Please also respect that the association of a p-value or CLs with and of the
+words 'test', 'limit', 'confidence', 'significance', 'exclusion', 'evidence',
+'observation' or 'discovery' is nominal, and does not correspond to the words'
+meanings in English.
 
 Rupert Tombs 2021
 
@@ -120,7 +122,10 @@ def main():
     parser = argparse.ArgumentParser(description="Interpret discovery fit workspaces.")
 
     parser.add_argument("operation", type=Operation, nargs="+",
-                        help="Operations from {%s} to perform." % OPERATIONS)
+                        help="Instructions from {%s}; " % OPERATIONS +
+                             "`invert' scans for upper limits; "
+                             "`test' samples for the discovery p-value; "
+                             "`output' dumps the plots and table.")
 
     parser.add_argument("-lumi", type=float, default=0,
                         help="Luminosity in inverse femtobarns.")
