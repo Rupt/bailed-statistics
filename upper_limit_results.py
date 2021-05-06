@@ -323,11 +323,11 @@ def output(args, invert_result, test_result):
 
     xs = sorted(map(invert_result.GetXValue, range(invert_result.ArraySize())))
 
-    if xs[0] <= visobs <= xs[-1]:
+    if xs[0] <= visobs < xs[-1]:
+        # if visobs == xs[0], this returns 1
         ihi = bisect.bisect_right(xs, visobs)
-        xhi = xs[max(ihi, len(xs) - 1)]
-        xlo = xs[ihi - 1]
-        assert xlo != xhi
+        xhi = xs[hi]
+        xlo = xs[hi - 1]
 
         bhi = invert_result.CLb(ihi)
         blo = invert_result.CLb(ihi - 1)
