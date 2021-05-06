@@ -1,6 +1,6 @@
 # Upper limits with limited memory
 
-Freely allocate memory, and let the operating systems clean up.
+Freely allocate memory, and let the operating system clean up.
 
 This is an efficient design pattern for short-lived programs;
 to track and free memory oneself is duplication of effort.
