@@ -135,15 +135,15 @@ def main():
                         help="Output file paths' prefix.")
 
     parser.add_argument("-load", type=str, nargs="*", default=[],
-                        help="Load results from previous runs of `invert or `test' "
-                             "to combine for `output'.")
+                        help="Filenames of pickled results from previous runs "
+                             "of `invert or `test'; to combine for `output'.")
 
     parser.add_argument("-filename", type=str,
                         default="results/foo/bar_combined_NormalMeasurement_model.root",
-                        help="Input ROOT workspace file path.")
+                        help="File path from which to get the workspace.")
 
     parser.add_argument("-workspace", type=str, default="combined",
-                        help="Workspace name to TFile.Get from the input file.")
+                        help="Workspace name to get from the input file.")
 
     parser.add_argument("-poi", type=str, default="mu_SIG",
                         help="Parameter Of Interest name in the workspace.")
@@ -157,13 +157,13 @@ def main():
 
     parser.add_argument("-seed", type=int, default=None,
                         help="Random seed in [0, 2**16); make yours unique. "
-                             "If None, use a mix of time and process id.")
+                             "If None, we use a mix of time and process id.")
 
     parser.add_argument("-nbatch", type=int, default=10,
                         help="Batch size for toys. Reduce to cut memory usage.")
 
     parser.add_argument("-processes", type=int, default=32,
-                        help="Maximum of processes for generating toys. "
+                        help="Maximum number of processes for generating toys. "
                              "Also capped by your cpu count.")
 
     parser.add_argument("-calculator", type=str, default="frequentist",
@@ -178,7 +178,7 @@ def main():
                              "from bailed_roostats.TestStatistic.")
 
     parser.add_argument("-channel", type=str, default="DR-WHO",
-                        help="Channel name for `output' tex tables.")
+                        help="Channel name for the `output' tex table.")
 
     parser.add_argument("-cl", type=float, default=0.95,
                         help="Level for 'upper limits', in [0, 1].")
