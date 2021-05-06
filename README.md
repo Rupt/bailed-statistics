@@ -71,7 +71,7 @@ usage: upper_limit_results.py [-h] [-lumi LUMI] [-prefix PREFIX]
                               [-seed SEED] [-nbatch NBATCH]
                               [-processes PROCESSES] [-calculator CALCULATOR]
                               [-statistic STATISTIC] [-channel CHANNEL]
-                              [-cl CL] [-splusb]
+                              [-cl CL] [-use_cls USE_CLS]
                               operations [operations ...]
 
 Make plots and tables for discovery fit statistics.
@@ -83,12 +83,12 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -lumi LUMI            luminosity in inverse femtobarns (default: None)
-  -prefix PREFIX        output file paths' prefix (default: None)
+  -lumi LUMI            luminosity in inverse femtobarns
+  -prefix PREFIX        output file paths' prefix
   -load [LOAD [LOAD ...]]
                         filenames of pickled results from previous runs to
                         combine; for `output' (default: [])
-  -filename FILENAME    workspace file path (default: None)
+  -filename FILENAME    workspace file path
   -workspace WORKSPACE  workspace name in its file (default: combined)
   -poi POI              parameter of interest name (default: mu_SIG)
   -points START STOP COUNT
@@ -110,7 +110,8 @@ optional arguments:
                         (default: profile_likelihood_one_sided)
   -channel CHANNEL      channel name for the tex table (default: DR-WHO)
   -cl CL                level for 'upper limits', in (0, 1) (default: 0.95)
-  -splusb               use CLs+b for limits; do not use CLs (default: False)
+  -use_cls USE_CLS      use CLs for limits; if false use CLs+b (default: True)
+
 ```
 
 

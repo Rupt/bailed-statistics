@@ -122,6 +122,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Make plots and tables for discovery fit statistics.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        argument_default=argparse.SUPPRESS,
     )
 
     parser.add_argument("operations", type=Operation, nargs="+",
@@ -170,8 +171,8 @@ def main():
                         help="channel name for the tex table")
     parser.add_argument("-cl", type=float, default=0.95,
                         help="level for 'upper limits', in (0, 1)")
-    parser.add_argument("-splusb", action="store_true",
-                        help="use CLs+b for limits; do not use CLs")
+    parser.add_argument("-use_cls", type=bool, default=True,
+                        help="use CLs for limits; if false use CLs+b")
 
     args = parser.parse_args()
 
@@ -182,7 +183,6 @@ def main():
     args.points[2] = int(args.points[2])
     args.processes = min(multiprocessing.cpu_count(), args.processes)
     assert args.processes > 0
-    args.cls = not args.splusb
 
     if args.seed is None:
         args.seed = make_seed()
@@ -308,7 +308,7 @@ def output(args, invert_result, test_result):
     # Find 'upper limit' on 'N_obs' (where N is a mean, not a count), by linear
     # interpolation to the poi where where its Y value meets our cl value.
     # The Y values are either CLs or CLs+b, depending on a flag.
-    invert_result.UseCLs(args.cls)
+    invert_result.UseCLs(args.use_cls)
     invert_result.SetConfidenceLevel(args.cl)
     invert_result.SetInterpolationOption(invert_result.kLinear)
     # UpperLimit ignores settings until FindInterpolatedLimit is called.
@@ -351,7 +351,7 @@ def output(args, invert_result, test_result):
         invert_result,
         args.calculator.value,
         args.statistic.value,
-        args.cls,
+        args.use_cls,
         npoints,
         outplotname,
         ".pdf",
@@ -366,7 +366,7 @@ def output(args, invert_result, test_result):
     table = textable(
         args.channel,
         args.cl,
-        args.cls,
+        args.use_cls,
         args.statistic,
         args.calculator,
         visobs,
@@ -420,7 +420,7 @@ def extend(args, invert_result, test_result):
 def textable(
         channel,
         cl,
-        is_cls,
+        use_cls,
         statistic,
         calculator,
         visobs,
@@ -471,7 +471,7 @@ def textable(
     )
 
     # Footer
-    if is_cls:
+    if use_cls:
         prescription = r"$\mathrm{CL_s}$"
     else:
         prescription = r"$\mathrm{CL_{s + b}}$"
