@@ -96,7 +96,7 @@ optional arguments:
   -ntoys NTOYS          number of toys to simulate
   -seed SEED            random seed in [0, 2**16); make yours unique; if None,
                         we use a mix of time and process id
-  -nbatch NBATCH        batch size for toys. Reduce to cut memory usage
+  -nbatch NBATCH        batch size for toys; reduce to cut memory usage
   -processes PROCESSES  maximum number of processes for generating toys; also
                         capped by your cpu count
   -calculator CALCULATOR
