@@ -128,7 +128,6 @@ Examples of false or unclear presentations of a p-value or CLs include:
  - as a likelihood or importance of data,
  - as necessary for an optimal or rational decision rule.
 
-Please also respect that the association of a p-value or CLs with and of the
-words 'test', 'limit', 'confidence', 'significance', 'exclusion', 'evidence',
-'observation' or 'discovery' is nominal, and may not reflect the words'
-meanings in English.
+Please also respect that association of a p-value or CLs with the words 'test',
+'limit', 'confidence', 'significance', 'exclusion', 'evidence', 'observation'
+or 'discovery' is nominal, and may not reflect the words' meanings in English.
