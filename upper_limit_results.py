@@ -149,8 +149,8 @@ def main():
                         help="Parameter Of Interest name in the workspace.")
 
     parser.add_argument("-points", type=float, nargs=3, default=[0.0, 40.0, 20],
-                        help="(start, stop, count) to linearly space points; "
-                             "for `invert'.")
+                        metavar=("START", "STOP", "COUNT"),
+                        help="Linear spacing of POI points; for `invert'.")
 
     parser.add_argument("-ntoys", type=int, default=3000,
                         help="Number of toys to simulate.")
@@ -177,14 +177,14 @@ def main():
                         help="Test statistic type "
                              "from bailed_roostats.TestStatistic.")
 
+    parser.add_argument("-channel", type=str, default="DR-WHO",
+                        help="Channel name for `output' tex tables.")
+
     parser.add_argument("-cl", type=float, default=0.95,
                         help="Level for 'upper limits', in [0, 1].")
 
     parser.add_argument("-splusb", action="store_true",
                         help="Use CLs+b for 'upper limits'; do not use CLs.")
-
-    parser.add_argument("-channel", type=str, default="DR-WHO",
-                        help="Channel name for `output' tex tables.")
 
     args = parser.parse_args()
 

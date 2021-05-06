@@ -71,17 +71,19 @@ Make plots and tables with with `output`.
 usage: upper_limit_results.py [-h] [-lumi LUMI] [-prefix PREFIX]
                               [-load [LOAD [LOAD ...]]] [-filename FILENAME]
                               [-workspace WORKSPACE] [-poi POI]
-                              [-points POINTS POINTS POINTS] [-ntoys NTOYS]
+                              [-points START STOP COUNT] [-ntoys NTOYS]
                               [-seed SEED] [-nbatch NBATCH]
                               [-processes PROCESSES] [-calculator CALCULATOR]
-                              [-statistic STATISTIC] [-cl CL] [-splusb]
-                              [-channel CHANNEL]
+                              [-statistic STATISTIC] [-channel CHANNEL]
+                              [-cl CL] [-splusb]
                               operation [operation ...]
 
 Interpret discovery fit workspaces.
 
 positional arguments:
-  operation             Operations from {invert output test} to perform.
+  operation             Instructions from {invert output test}; `invert' scans
+                        for upper limits; `test' samples for the discovery
+                        p-value; `output' dumps the plots and table.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -93,9 +95,8 @@ optional arguments:
   -filename FILENAME    Input ROOT workspace file path.
   -workspace WORKSPACE  Workspace name to TFile.Get from the input file.
   -poi POI              Parameter Of Interest name in the workspace.
-  -points POINTS POINTS POINTS
-                        (start, stop, count) to linearly space points; for
-                        `invert'.
+  -points START STOP COUNT
+                        Linear spacing of POI points; for `invert'.
   -ntoys NTOYS          Number of toys to simulate.
   -seed SEED            Random seed in [0, 2**16); make yours unique. If None,
                         use a mix of time and process id.
@@ -109,9 +110,9 @@ optional arguments:
                         standard without toys.
   -statistic STATISTIC  Test statistic type from
                         bailed_roostats.TestStatistic.
+  -channel CHANNEL      Channel name for `output' tex tables.
   -cl CL                Level for 'upper limits', in [0, 1].
   -splusb               Use CLs+b for 'upper limits'; do not use CLs.
-  -channel CHANNEL      Channel name for `output' tex tables.
 ```
 
 
