@@ -338,8 +338,8 @@ def output(args, invert_result, test_result):
         beta = bhi - alpha*xhi
         clb = alpha*visobs + beta
     else:
-        LOGGER.warning("Upper limit %r out of range of poi values [%r ... %r]. "
-                       "Setting CLb = 0", visobs, xs[0], xs[-1])
+        LOGGER.warning("Upper limit %r out of range of poi values [%r ... %r]; "
+                       "setting CLb to 0.", visobs, xs[0], xs[-1])
         clb = 0.0
 
     # Dump plots
