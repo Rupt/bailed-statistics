@@ -546,7 +546,7 @@ def textable(
 
 
 def make_seed():
-    """ Return seed in [0, 2**16) using process id and time.
+    """ Return a seed in [0, 2**16) using process id and time.
 
         In sequence, times will differ.
         In parallel, process ids will differ.
