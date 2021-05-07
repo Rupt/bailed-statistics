@@ -569,8 +569,10 @@ def seed_roo_random(seed):
 def get_workspace(filename, workspacename):
     """ Load and return a workspace from a file. """
     workspace = ROOT.Util.GetWorkspaceFromFile(filename, workspacename)
-    # Attempts to check against None do not work.
-    if repr(workspace) == "<ROOT.RooWorkspace object at 0x(nil)>":
+    # Attempts to check against None do not work; using name as a proxy.
+    try:
+        workspace.GetName()
+    except ReferenceError:
         raise IOError("Failed to load workspace %r from file %r" %
             (workspacename, filename))
     return workspace
@@ -579,9 +581,11 @@ def get_workspace(filename, workspacename):
 def set_poi(workspace, poiname):
     """ Set the Parameter Of Interest in the workspace model config. """
     poi = workspace.var(poiname)
-    # Attempts to check against None do not work.
-    if repr(poi) == "<ROOT.RooRealVar object at 0x(nil)>":
-        raise KeyError("Failed to get POI %r from workspace %r" %
+    # Attempts to check against None do not work; using name as a proxy.
+    try:
+        poi.GetName()
+    except ReferenceError:
+        raise IOError("Failed to get POI %r from workspace %r" %
             (poiname, workspace))
     model_config = workspace.obj("ModelConfig")
     model_config.SetParametersOfInterest(ROOT.RooArgSet(poi))

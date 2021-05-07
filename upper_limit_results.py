@@ -222,6 +222,14 @@ def execute(args):
         dump(args, (args.seed, invert_result_dumps, test_result_dumps))
 
     if do_output:
+        # Load previous results to combine in output.
+        invert_result, test_result = extend(args, invert_result, test_result)
+
+        if invert_result is None:
+            raise ValueError("No `invert' result loaded for `output'.")
+        if test_result is None:
+            raise ValueError("No `test' result loaded for `output'.")
+
         output(args, invert_result, test_result)
 
 
@@ -272,9 +280,6 @@ def output(args, invert_result, test_result):
     """ Output plots and tables. """
     import ROOT
     from bailed_roostats import CalculatorType, TOY_CALCULATORS
-
-    # Load results from previous runs.
-    invert_result, test_result = extend(args, invert_result, test_result)
 
     # Log result points and ntoys
     if args.calculator in TOY_CALCULATORS:
