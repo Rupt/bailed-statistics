@@ -331,8 +331,8 @@ def output(args, invert_result, test_result):
     if xs[0] <= visobs < xs[-1]:
         # if visobs == xs[0], this returns 1
         ihi = bisect.bisect_right(xs, visobs)
-        xhi = xs[hi]
-        xlo = xs[hi - 1]
+        xhi = xs[ihi]
+        xlo = xs[ihi - 1]
 
         bhi = invert_result.CLb(ihi)
         blo = invert_result.CLb(ihi - 1)
