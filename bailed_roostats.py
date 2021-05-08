@@ -22,7 +22,7 @@ Our primary tools are hypo_test_inversion(...) and hypo_test(...).
 
 CalculatorType, TestStatistic and FitType are enums for configuration.
 
-Bailed execution is done through mapbailreduce(...).
+Bailed execution is done through bailmap(...).
 
 Execute this script to run some tests of utility functions.
 
@@ -39,7 +39,8 @@ and most definitely not
         (https://dictionary.cambridge.org/dictionary/english/bailed)
 
 Our worst offender is HypoTestInverter.GetInterval since it is the long loop.
-Also implicated is no free after ModelConfig.GetSnapshot or RooArgSet.snapshot.
+Also implicated is no free after ModelConfig.GetSnapshot or RooArgSet.snapshot,
+as well as allocations in .Add and .Append *Result methods.
 
 """
 from __future__ import print_function, division
@@ -47,6 +48,7 @@ from __future__ import print_function, division
 import enum
 import itertools
 import functools
+import more_itertools
 import multiprocessing
 import tempfile
 
@@ -150,7 +152,8 @@ def hypo_test_inversion(
             random_seed:
                 int in [0, 2**16) for deterministic random number generation.
             batch_size:
-                Maximum number of toys to generate per call.
+                Maximum number of objects per batch of bailed execution;
+                both number of toys and number of results merged.
                 Reduce when limited by memory.
             processes:
                 Number of processes to use in execution.
@@ -159,7 +162,7 @@ def hypo_test_inversion(
                 (in HistFitter), with the same defaults where appropriate.
 
         Returns:
-            HypoTestInverterResult
+            dumped HypoTestInverterResult
     """
     if calculatorType.value in TOY_CALCULATORS:
         assert ntoys > 0
@@ -202,11 +205,15 @@ def hypo_test_inversion(
     )
 
     # Execute with memory bailing.
-    def add(x, y):
-        x.Add(y)
-        return x
+    inversions = bailmap(hypo_test_inversion_batch, specs, processes)
 
-    return mapbailreduce(add, root_loads, hypo_test_inversion_batch, specs, processes)
+    # `Add' also leaks like a sieve, so bail that too; first in batch_size
+    # chunks, then reduce pairs of the larger merged results.
+    batches = more_itertools.chunked(inversions, batch_size)
+    merges = bailmap(hypo_test_inversion_merge, batches)
+
+    reduction = lambda a, b: bailmap(hypo_test_inversion_merge, [(a, b)], 1)
+    return functools.reduce(reduction, merges)
 
 
 def hypo_test(
@@ -241,8 +248,9 @@ def hypo_test(
             ntoys:
                 Number of samples to generate.
             batch_size:
-                Maximum number of toys to generate in one call.
-                Reduce when limited by memory buoyancy.
+                Maximum number of objects per batch of bailed execution;
+                both number of toys and number of results merged.
+                Reduce when limited by memory.
             processes:
                 Number of processes to use in execution.
                 If None (default), use cpu count.
@@ -250,7 +258,7 @@ def hypo_test(
                 with the same defaults where appropriate.
 
         Returns:
-            HypoTestResult
+            dumped HypoTestResult
     """
     if calculatorType.value in TOY_CALCULATORS:
         assert ntoys > 0
@@ -296,11 +304,17 @@ def hypo_test(
     )
 
     # Execute with memory bailing.
-    def append(x, y):
-        x.Append(y)
-        return x
+    tests = bailmap(hypo_test_batch, specs, processes)
 
-    return mapbailreduce(append, root_loads, hypo_test_batch, specs, processes)
+    # `Append' also leaks like a sieve, so bail that too; first in batch_size
+    # chunks, then reduce pairs of the larger merged results.
+    batches = more_itertools.chunked(tests, batch_size)
+    merges = bailmap(hypo_test_merge, batches)
+
+    reduction = lambda a, b: bailmap(hypo_test_merge, [(a, b)], 1)
+
+    return functools.reduce(reduction, merges)
+
 
 
 def hypo_test_inversion_batch(spec):
@@ -362,8 +376,17 @@ def hypo_test_inversion_batch(spec):
     return root_dumps(result)
 
 
+def hypo_test_inversion_merge(results):
+    """ Return a dumped combination of dumped HypoTestInverterResults. """
+    root_results = map(root_loads, results)
+    out = next(root_results)
+    for result in root_results:
+        out.Add(result)
+    return root_dumps(out)
+
+
 def hypo_test_inversion_no_toys(workspace_args, fixed_args, points, seed):
-    """ Return a HypoTestInverterResult for a non-toy calculator. """
+    """ Return a dumped HypoTestInverterResult for a non-toy calculator. """
     filename, workspacename, poiname = workspace_args
     workspace = get_workspace(filename, workspacename)
     set_poi(workspace, poiname)
@@ -390,7 +413,7 @@ def hypo_test_inversion_no_toys(workspace_args, fixed_args, points, seed):
     # This might not make a difference, but including it for consistency.
     seed_roo_random(seed)
 
-    return ROOT.RooStats.DoHypoTestInversion(
+    result = ROOT.RooStats.DoHypoTestInversion(
         workspace,
         ntoys,
         calculatorType.value,
@@ -407,6 +430,8 @@ def hypo_test_inversion_no_toys(workspace_args, fixed_args, points, seed):
         nuisPriorName,
         generateAsimovDataForObserved,
         nCPUs)
+
+    return root_dumps(result)
 
 
 def hypo_test_batch(spec):
@@ -452,8 +477,17 @@ def hypo_test_batch(spec):
     return root_dumps(result)
 
 
+def hypo_test_merge(results):
+    """ Return a dumped combination of dumped HypoTestResults. """
+    root_results = map(root_loads, results)
+    out = next(root_results)
+    for result in root_results:
+        out.Append(result)
+    return root_dumps(out)
+
+
 def hypo_test_no_toys(workspace_args, fixed_args, seed):
-    """ Return a HypoTestResult for a non-toy calculator. """
+    """ Return a dumped HypoTestResult for a non-toy calculator. """
     filename, workspacename = workspace_args
     workspace = get_workspace(filename, workspacename)
 
@@ -475,7 +509,7 @@ def hypo_test_no_toys(workspace_args, fixed_args, seed):
 
     ntoys = -1
 
-    return ROOT.RooStats.DoHypoTest(
+    result = ROOT.RooStats.DoHypoTest(
         workspace,
         do_upper_limit,
         ntoys,
@@ -488,33 +522,32 @@ def hypo_test_no_toys(workspace_args, fixed_args, seed):
         nuisPriorName,
     )
 
+    return root_dumps(result)
+
 
 
 # Utility function definitions
 
 
-def mapbailreduce(reduction, func, bailed_func, iterable, processes=None):
-    """ Return a mapreduction function of iterable with memory leaks bailed out.
+def bailmap(func, iterable, processes=None):
+    """ Return a func mapped over iterable with memory leaks bailed out.
 
-        Map `bailed_func' across `iterable' with bailing
-
-        then map `func' across the result
-
-        then reduce by `reduction'
-
-        then return the reduced result.
+        Uses a pool of processes of size `processes'; if None, uses cpu count.
     """
     # maxtasksperchild and chunksize set to 1 ensure cleanup after each call.
     pool = multiprocessing.Pool(processes, maxtasksperchild=1)
-    bailed = pool.imap(bailed_func, iterable, chunksize=1)
-    mapped = map(func, bailed)
-    reduced = functools.reduce(reduction, mapped)
+    mapped = pool.imap(func, iterable, chunksize=1)
     pool.close()
-    return reduced
+    return mapped
 
 
 def root_dumps(root_object):
-    """ Return (name, binary) which serialize root_object. """
+    """ Return (name, binary) which serialize root_object.
+
+        None dumps to None.
+    """
+    if root_object is None:
+        return None
     name = root_object.GetName()
     file_ = tempfile.NamedTemporaryFile()
     # Write ROOT's serialization into the temporary file.
@@ -531,7 +564,12 @@ def root_dumps(root_object):
 
 
 def root_loads(name_binary):
-    """ Return a root object de-serialized from a (name, binary) pair. """
+    """ Return a root object de-serialized from a (name, binary) pair.
+
+        None loads to None.
+    """
+    if name_binary is None:
+        return None
     name, binary = name_binary
     # Reproduce ROOT's file as a temporary.
     file_ = tempfile.NamedTemporaryFile()

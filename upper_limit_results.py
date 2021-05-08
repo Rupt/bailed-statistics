@@ -87,6 +87,7 @@ from __future__ import print_function, division
 import argparse
 import bisect
 import enum
+import functools
 import itertools
 import logging
 import more_itertools
@@ -186,6 +187,8 @@ def main():
     args.points[2] = int(args.points[2])
     args.processes = min(multiprocessing.cpu_count(), args.processes)
     assert args.processes > 0
+    assert args.nbatch > 0
+    assert args.ntoys > 0
 
     if args.seed is None:
         args.seed = make_seed()
@@ -200,38 +203,30 @@ def main():
 
 def execute(args):
     """ Run our operations for given args namespace, as produced by main(). """
-    from bailed_roostats import root_dumps
+    from bailed_roostats import root_loads
 
     do_invert = Operation.invert in args.operations
     do_test = Operation.test in args.operations
     do_output = Operation.output in args.operations
 
     # Prepare and dump new results.
-    if do_invert:
-        invert_result = invert(args)
-        invert_result_dumps = root_dumps(invert_result)
-    else:
-        invert_result = None
-        invert_result_dumps = None
-
-    if do_test:
-        test_result = test(args)
-        test_result_dumps = root_dumps(test_result)
-    else:
-        test_result = None
-        test_result_dumps = None
+    invert_dumps = invert(args) if do_invert else None
+    test_dumps = test(args) if do_test else None
 
     if do_invert or do_test:
-        dump(args, (args.seed, invert_result_dumps, test_result_dumps))
+        dump(args, (args.seed, invert_dumps, test_dumps))
 
     if do_output:
         # Load previous results to combine in output.
-        invert_result, test_result = merge(args, invert_result, test_result)
+        invert_dumps, test_dumps = merge(args, invert_dumps, test_dumps)
 
-        if invert_result is None:
-            raise ValueError("No `invert' result loaded for `output'.")
-        if test_result is None:
-            raise ValueError("No `test' result loaded for `output'.")
+        if invert_dumps is None:
+            raise ValueError("No `invert' result loaded.")
+        if test_dumps is None:
+            raise ValueError("No `test' result loaded.")
+
+        invert_result = root_loads(invert_dumps)
+        test_result = root_loads(test_dumps)
 
         output(args, invert_result, test_result)
 
@@ -279,6 +274,79 @@ def dump(args, content):
         pickle.dump(content, file_)
 
 
+def merge(args, invert_dumps, test_dumps):
+    """ Return dumped merged results comprising loaded and latest outputs.
+
+        Result merging is leaky; merge in bailed batches.
+    """
+    from bailed_roostats import bailmap, root_loads
+
+    # Iterate over loaded files and awkward this-call special case.
+    def loaded_specs():
+        for filename in args.load:
+            with open(filename, "rb") as file_:
+                seed, invert_dumps, test_dumps = pickle.load(file_)
+                yield ({seed: filename}, invert_dumps, test_dumps)
+
+    in_spec = ({args.seed: "dumped this call"}, invert_dumps, test_dumps)
+
+    #if args.load:
+    specs = itertools.chain([in_spec], loaded_specs())
+
+    # Merge batches of smaller results.
+    batches = more_itertools.chunked(specs, args.nbatch)
+    out = bailmap(merge_batch, batches, args.processes)
+
+    # Reduce in pairs of their larger combinations.
+    reduction = lambda a, b: bailmap(merge_batch, [(a, b)], 1)
+    _, invert_dumps, test_dumps = functools.reduce(reduction, out)
+
+    return invert_dumps, test_dumps
+
+
+def merge_batch(specs):
+    """ Merge a batch of results. Return dumps and seed map.
+
+        specs contains (seed_to_filename, invert_dumps, test_dumps) trios.
+        Each seed_to_filename refers to objects merged into the results.
+
+        invert_dumps or test_dumps may be None for missing entries.
+
+        Beware: ROOT crashes when attempting to merge non-toy results.
+    """
+    from bailed_roostats import root_dumps, root_loads
+    seed_to_filename = {}
+    invert_result = None
+    test_result = None
+
+    for seed_to_filename_i, invert_dumps_i, test_dumps_i in specs:
+        # Catch repeated seeds.
+        for seed_j, filename_j in seed_to_filename_i.items():
+            if seed_j in seed_to_filename:
+                raise ValueError("Seed `%d' reused in inputs %r and %r."
+                                % (seed_j, seed_to_filename[seed_j], filename_j))
+
+        seed_to_filename.update(seed_to_filename_i)
+
+        # Merge both results.
+        if invert_dumps_i is not None:
+            if invert_result is None:
+                invert_result = root_loads(invert_dumps_i)
+            else:
+
+                invert_result.Add(root_loads(invert_dumps_i))
+
+        if test_dumps_i is not None:
+            if test_result is None:
+                test_result = root_loads(test_dumps_i)
+            else:
+                test_result.Append(root_loads(test_dumps_i))
+
+    invert_dumps = root_dumps(invert_result)
+    test_dumps = root_dumps(test_result)
+    return seed_to_filename, invert_dumps, test_dumps
+
+
 def output(args, invert_result, test_result):
     """ Output plots and tables. """
     import ROOT
@@ -300,11 +368,6 @@ def output(args, invert_result, test_result):
         nulltoys = test_result.GetNullDistribution().GetSize()
         alttoys = test_result.GetAltDistribution().GetSize()
         LOGGER.info("%d,%d", nulltoys, alttoys)
-
-    if invert_result is None:
-        raise ValueError("No `invert' result loaded.")
-    if test_result is None:
-        raise ValueError("No `test' result loaded.")
 
     # Inversion
     # Exclusion cleanup (errors if not asymptotic calculator)
@@ -390,83 +453,6 @@ def output(args, invert_result, test_result):
     with open(outfilename, "w") as file_:
         file_.write(table)
     LOGGER.info("Wrote upper limit table %r", outfilename)
-
-
-def merge(args, invert_result, test_result):
-    """ Merge loaded results with invert_result and test_result.
-
-        May update invert_result and test_result in-place.
-
-        Result merging is leaky; merge in bailed batches.
-    """
-    from bailed_roostats import mapbailreduce, root_loads
-
-    # Iterate over loaded files and awkward this-call special case.
-    def loaded_specs():
-        for filename in args.load:
-            with open(filename, "rb") as file_:
-                seed, invert_dumps, test_dumps = pickle.load(file_)
-                yield ({seed: filename}, invert_dumps, test_dumps)
-
-    in_spec = ({args.seed: "dump"}, invert_result, test_result)
-    specs = itertools.chain([in_spec], loaded_specs())
-    batches = more_itertools.chunked(specs, args.nbatch)
-
-    # No-change mapping to skip unnecessary features of mapbailreduce
-    identity = lambda x: x
-
-    # After the main batched merging, we have large objects to combine.
-    # Since cloning leaks are proportional to object size, do pairs only.
-    def reduction(spec1, spec2):
-        pair = [(spec1, spec2)]
-        return mapbailreduce(None, identity, merge_batch, pair, 1)
-
-    # Execute
-    out = mapbailreduce(reduction, identity, merge_batch, batches, args.processes)
-    _, invert_dumps, test_dumps = out
-
-    invert_result = root_loads(invert_dumps)
-    test_result = root_loads(test_dumps)
-    return invert_result, test_result
-
-
-def merge_batch(specs):
-    """ Merge a batch of results. Return dumps and seed map.
-
-        specs contains (seed_to_filename, invert_dumps, test_dumps) trios.
-        Each seed_to_filename refers to objects merged into the results.
-
-        invert_dumps or test_dumps may be None for missing entries.
-    """
-    from bailed_roostats import root_dumps, root_loads
-    seed_to_filename = {}
-    invert_result = None
-    test_result = None
-
-    for seed_to_filename_i, invert_dumps_i, test_dumps_i in specs:
-        # Catch repeated seed errors. Could use set operations in python 3.
-        for seed_j, filename_j in seed_to_filename_i.items():
-            if seed_j in seed_to_filename:
-                raise ValueError("Seed `%d' reused in inputs %r and %r."
-                                % (seed_j, seed_to_filename[seed], filename_j))
-
-        seed_to_filename.update(seed_to_filename_i)
-
-        if invert_dumps_i is not None:
-            if invert_result is None:
-                invert_result = root_loads(invert_dumps_i)
-            else:
-                invert_result.Add(root_loads(invert_dumps_i))
-
-        if test_dumps_i is not None:
-            if test_result is None:
-                test_result = root_loads(test_dumps_i)
-            else:
-                test_result.Append(root_loads(test_dumps_i))
-
-    invert_dumps = root_dumps(invert_result)
-    test_dumps = root_dumps(test_result)
-    return seed_to_filename, invert_dumps, test_dumps
 
 
 def textable(
