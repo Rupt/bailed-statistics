@@ -281,25 +281,32 @@ def merge(args, invert_dumps, test_dumps):
     """
     from bailed_roostats import bailmap, root_loads
 
-    # Iterate over loaded files and awkward this-call special case.
     def loaded_specs():
         for filename in args.load:
-            with open(filename, "rb") as file_:
-                seed, invert_dumps, test_dumps = pickle.load(file_)
-                yield ({seed: filename}, invert_dumps, test_dumps)
+            try:
+                with open(filename, "rb") as file_:
+                    seed, invert_dumps, test_dumps = pickle.load(file_)
+                    yield ({seed: filename}, invert_dumps, test_dumps)
+            except:
+                # Invalid file, but we can't raise here because that just
+                # ends the generator.
+                yield None
 
-    in_spec = ({args.seed: "dumped this call"}, invert_dumps, test_dumps)
+    if args.load:
+        # Iterate over loaded files and awkward this-call special case.
+        specs = loaded_specs()
 
-    #if args.load:
-    specs = itertools.chain([in_spec], loaded_specs())
+        if invert_dumps is not None or test_dumps is not None:
+            # Prepend our new results.
+            in_spec = ({args.seed: "dump this call"}, invert_dumps, test_dumps)
+            specs = itertools.chain([in_spec], specs)
 
-    # Merge batches of smaller results.
-    batches = more_itertools.chunked(specs, args.nbatch)
-    out = bailmap(merge_batch, batches, args.processes)
+        # Merge batches of smaller results.
+        batches = more_itertools.chunked(specs, args.nbatch)
+        out = bailmap(merge_batch, batches, args.processes)
 
-    # Reduce in pairs of their larger combinations.
-    reduction = lambda a, b: bailmap(merge_batch, [(a, b)], 1)
-    _, invert_dumps, test_dumps = functools.reduce(reduction, out)
+        reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
+        _, invert_dumps, test_dumps = functools.reduce(reduction, out)
 
     return invert_dumps, test_dumps
 
@@ -319,7 +326,11 @@ def merge_batch(specs):
     invert_result = None
     test_result = None
 
-    for seed_to_filename_i, invert_dumps_i, test_dumps_i in specs:
+    for trio in specs:
+        if trio is None:
+            raise ValueError("Invalid input; check your -load argument?")
+
+        seed_to_filename_i, invert_dumps_i, test_dumps_i = trio
         # Catch repeated seeds.
         for seed_j, filename_j in seed_to_filename_i.items():
             if seed_j in seed_to_filename:
@@ -333,7 +344,6 @@ def merge_batch(specs):
             if invert_result is None:
                 invert_result = root_loads(invert_dumps_i)
             else:
-
                 invert_result.Add(root_loads(invert_dumps_i))
 
         if test_dumps_i is not None:

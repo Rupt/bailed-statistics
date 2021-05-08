@@ -48,6 +48,7 @@ from __future__ import print_function, division
 import enum
 import itertools
 import functools
+import logging
 import more_itertools
 import multiprocessing
 import tempfile
@@ -61,6 +62,11 @@ ROOT.gSystem.Load("libSusyFitter.so")
 import ROOT.ConfigMgr
 ROOT.gROOT.SetBatch(True)
 ROOT.gROOT.Reset()
+
+
+LOGGER = logging.getLogger("bailed_roostats")
+logging.basicConfig(level=logging.INFO)
+
 
 
 # Remove references to data sets which we never look at?
@@ -212,7 +218,7 @@ def hypo_test_inversion(
     batches = more_itertools.chunked(inversions, batch_size)
     merges = bailmap(hypo_test_inversion_merge, batches)
 
-    reduction = lambda a, b: bailmap(hypo_test_inversion_merge, [(a, b)], 1)
+    reduction = lambda a, b: next(bailmap(hypo_test_inversion_merge, [(a, b)], 1))
     return functools.reduce(reduction, merges)
 
 
@@ -311,7 +317,7 @@ def hypo_test(
     batches = more_itertools.chunked(tests, batch_size)
     merges = bailmap(hypo_test_merge, batches)
 
-    reduction = lambda a, b: bailmap(hypo_test_merge, [(a, b)], 1)
+    reduction = lambda a, b: next(bailmap(hypo_test_merge, [(a, b)], 1))
 
     return functools.reduce(reduction, merges)
 
@@ -325,8 +331,13 @@ def hypo_test_inversion_batch(spec):
     workspace_args, fixed_args, (point, nbatch), seed = spec
 
     filename, workspacename, poiname = workspace_args
-    workspace = get_workspace(filename, workspacename)
-    set_poi(workspace, poiname)
+    try:
+        workspace = get_workspace(filename, workspacename)
+        set_poi(workspace, poiname)
+    except IOError as error:
+        # Log to get the message out from generator environments.
+        LOGGER.error(error)
+        raise error
 
     (
         calculatorType,
@@ -388,8 +399,13 @@ def hypo_test_inversion_merge(results):
 def hypo_test_inversion_no_toys(workspace_args, fixed_args, points, seed):
     """ Return a dumped HypoTestInverterResult for a non-toy calculator. """
     filename, workspacename, poiname = workspace_args
-    workspace = get_workspace(filename, workspacename)
-    set_poi(workspace, poiname)
+    try:
+        workspace = get_workspace(filename, workspacename)
+        set_poi(workspace, poiname)
+    except IOError as error:
+        # Log to get the message out from generator environments.
+        LOGGER.error(error)
+        raise error
 
     (
         calculatorType,
@@ -442,7 +458,12 @@ def hypo_test_batch(spec):
     workspace_args, fixed_args, nbatch, seed = spec
 
     filename, workspacename = workspace_args
-    workspace = get_workspace(filename, workspacename)
+    try:
+        workspace = get_workspace(filename, workspacename)
+    except IOError as error:
+        # Log to get the message out from generator environments.
+        LOGGER.error(error)
+        raise error
 
     (
         do_upper_limit,
@@ -489,7 +510,12 @@ def hypo_test_merge(results):
 def hypo_test_no_toys(workspace_args, fixed_args, seed):
     """ Return a dumped HypoTestResult for a non-toy calculator. """
     filename, workspacename = workspace_args
-    workspace = get_workspace(filename, workspacename)
+    try:
+        workspace = get_workspace(filename, workspacename)
+    except IOError as error:
+        # Log to get the message out from generator environments.
+        LOGGER.error(error)
+        raise error
 
     (
         do_upper_limit,
