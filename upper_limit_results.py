@@ -87,7 +87,9 @@ from __future__ import print_function, division
 import argparse
 import bisect
 import enum
+import itertools
 import logging
+import more_itertools
 import multiprocessing
 import os
 import time
@@ -152,9 +154,10 @@ def main():
     parser.add_argument("-seed", type=int, default=None,
                         help="random seed in [0, 2**16); make yours unique; "
                              "if None, we use a mix of time and process id")
-    parser.add_argument("-nbatch", type=int, default=10,
-                        help="batch size for toys; reduce to cut memory usage")
-    parser.add_argument("-processes", type=int, default=16,
+    parser.add_argument("-nbatch", type=int, default=100,
+                        help="size of batches which execute leaky code; "
+                             "reduce to cut memory usage")
+    parser.add_argument("-processes", type=int, default=1,
                         help="maximum number of processes for generating toys; "
                              "also capped by your cpu count")
     parser.add_argument("-calculator", type=str, default="frequentist",
@@ -223,7 +226,7 @@ def execute(args):
 
     if do_output:
         # Load previous results to combine in output.
-        invert_result, test_result = extend(args, invert_result, test_result)
+        invert_result, test_result = merge(args, invert_result, test_result)
 
         if invert_result is None:
             raise ValueError("No `invert' result loaded for `output'.")
@@ -252,7 +255,7 @@ def invert(args):
 
 def test(args):
     """ Return a HypoTestResult for args. """
-    from bailed_roostats import hypo_test, FitType
+    from bailed_roostats import FitType, hypo_test
 
     # Flip some seed bits to give different context from `invert'.
     test_seed = args.seed ^ 0b101101
@@ -389,35 +392,81 @@ def output(args, invert_result, test_result):
     LOGGER.info("Wrote upper limit table %r", outfilename)
 
 
-def extend(args, invert_result, test_result):
-    """ Load previous results into invert_result and test_result. """
-    from bailed_roostats import root_loads
+def merge(args, invert_result, test_result):
+    """ Merge loaded results with invert_result and test_result.
 
-    seed_to_filename = {}
+        May update invert_result and test_result in-place.
 
-    for filename in args.load:
-        with open(filename, "rb") as file_:
-            seed, invert_extra, test_extra = pickle.load(file_)
+        Result merging is leaky; merge in bailed batches.
+    """
+    from bailed_roostats import mapbailreduce, root_loads
 
-        if seed in seed_to_filename:
-            raise ValueError("Seed `%d' reused in inputs %r and %r."
-                             % (seed, seed_to_filename[seed], filename))
+    # Iterate over loaded files and awkward this-call special case.
+    def loaded_specs():
+        for filename in args.load:
+            with open(filename, "rb") as file_:
+                seed, invert_dumps, test_dumps = pickle.load(file_)
+                yield ({seed: filename}, invert_dumps, test_dumps)
 
-        seed_to_filename[seed] = filename
+    in_spec = ({args.seed: "dump"}, invert_result, test_result)
+    specs = itertools.chain([in_spec], loaded_specs())
+    batches = more_itertools.chunked(specs, args.nbatch)
 
-        if invert_extra is not None:
-            if invert_result is None:
-                invert_result = root_loads(invert_extra)
-            else:
-                invert_result.Add(root_loads(invert_extra))
+    # No-change mapping to skip unnecessary features of mapbailreduce
+    identity = lambda x: x
 
-        if test_extra is not None:
-            if test_result is None:
-                test_result = root_loads(test_extra)
-            else:
-                test_result.Append(root_loads(test_extra))
+    # After the main batched merging, we have large objects to combine.
+    # Since cloning leaks are proportional to object size, do pairs only.
+    def reduction(spec1, spec2):
+        pair = [(spec1, spec2)]
+        return mapbailreduce(None, identity, merge_batch, pair, 1)
 
+    # Execute
+    out = mapbailreduce(reduction, identity, merge_batch, batches, args.processes)
+    _, invert_dumps, test_dumps = out
+
+    invert_result = root_loads(invert_dumps)
+    test_result = root_loads(test_dumps)
     return invert_result, test_result
+
+
+def merge_batch(specs):
+    """ Merge a batch of results. Return dumps and seed map.
+
+        specs contains (seed_to_filename, invert_dumps, test_dumps) trios.
+        Each seed_to_filename refers to objects merged into the results.
+
+        invert_dumps or test_dumps may be None for missing entries.
+    """
+    from bailed_roostats import root_dumps, root_loads
+    seed_to_filename = {}
+    invert_result = None
+    test_result = None
+
+    for seed_to_filename_i, invert_dumps_i, test_dumps_i in specs:
+        # Catch repeated seed errors. Could use set operations in python 3.
+        for seed_j, filename_j in seed_to_filename_i.items():
+            if seed_j in seed_to_filename:
+                raise ValueError("Seed `%d' reused in inputs %r and %r."
+                                % (seed_j, seed_to_filename[seed], filename_j))
+
+        seed_to_filename.update(seed_to_filename_i)
+
+        if invert_dumps_i is not None:
+            if invert_result is None:
+                invert_result = root_loads(invert_dumps_i)
+            else:
+                invert_result.Add(root_loads(invert_dumps_i))
+
+        if test_dumps_i is not None:
+            if test_result is None:
+                test_result = root_loads(test_dumps_i)
+            else:
+                test_result.Append(root_loads(test_dumps_i))
+
+    invert_dumps = root_dumps(invert_result)
+    test_dumps = root_dumps(test_result)
+    return seed_to_filename, invert_dumps, test_dumps
 
 
 def textable(
@@ -435,7 +484,7 @@ def textable(
         nullp):
     """ Return a string tex table displaying configuration and and results. """
     import ROOT
-    from bailed_roostats import TestStatistic, CalculatorType
+    from bailed_roostats import CalculatorType, TestStatistic
 
     level = int(100 * cl)
     assert level == 100 * cl
