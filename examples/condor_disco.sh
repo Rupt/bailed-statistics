@@ -2,6 +2,8 @@
 
 # Fill me in!
 DISCO_HF=your_histfitter_working_path
+DISCO='disco'
+
 DISCO_HOME=${DISCO_HF}/results/${DISCO}
 
 # Make toys.
@@ -12,7 +14,6 @@ DISCO_STOP=$4
 DISCO_COUNT=$5
 DISCO_NTOYS=$6
 DISCO_OFFSET=$7
-DISCO='disco'
 
 DISCO_SEED=$(expr ${DISCO_OFFSET} + ${DISCO_ID})
 
