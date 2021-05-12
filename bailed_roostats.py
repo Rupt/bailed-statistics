@@ -68,9 +68,9 @@ LOGGER = logging.getLogger("bailed_roostats")
 logging.basicConfig(level=logging.INFO)
 
 
-
 # Remove references to data sets which we never look at?
 CLEAN_DETAILED_OUTPUT = True
+
 
 
 # Types
@@ -217,9 +217,8 @@ def hypo_test_inversion(
     # chunks, then reduce pairs of the larger merged results.
     batches = more_itertools.chunked(inversions, batch_size)
     merges = bailmap(hypo_test_inversion_merge, batches)
-
     reduction = lambda a, b: next(bailmap(hypo_test_inversion_merge, [(a, b)], 1))
-    return functools.reduce(reduction, merges)
+    return cascade(reduction, list(merges))
 
 
 def hypo_test(
@@ -316,10 +315,8 @@ def hypo_test(
     # chunks, then reduce pairs of the larger merged results.
     batches = more_itertools.chunked(tests, batch_size)
     merges = bailmap(hypo_test_merge, batches)
-
     reduction = lambda a, b: next(bailmap(hypo_test_merge, [(a, b)], 1))
-
-    return functools.reduce(reduction, merges)
+    return cascade(reduction, list(merges))
 
 
 
@@ -567,6 +564,19 @@ def bailmap(func, iterable, processes=None):
     return mapped
 
 
+def cascade(func, items):
+    """ Pairwise reduce a list of items through func. """
+    while len(items) > 1:
+        # Split off an odd loner if it exists.
+        len_even = len(items) & -2
+        even = items[:len_even]
+        last = items[len_even:]
+        # Apply in pairs.
+        pairs = more_itertools.chunked(even, 2)
+        items = list(itertools.starmap(func, pairs)) + last
+    return items[0]
+
+
 def root_dumps(root_object):
     """ Return (name, binary) which serialize root_object.
 
@@ -728,12 +738,23 @@ def test_seed_roo_random():
         assert all(x == y for x, y in zip(numbers, numbers4))
 
 
+def test_cascade():
+    """ Assert that cascade works as intended. """
+    add = lambda a, b: a + b
+    data = list(range(-5123, 1234, 7))
+    assert cascade(add, data) == sum(data)
+    assert cascade(add, data[1:]) == sum(data[1:])
+    assert cascade(add, data[:1]) == sum(data[:1])
+    assert cascade(add, data[:2]) == sum(data[:2])
+
+
 def test_all():
     """ Run all tests. """
     test_batch()
     test_linspace()
     test_root_dumps_loads()
     test_seed_roo_random()
+    test_cascade()
 
 
 if __name__ == "__main__":

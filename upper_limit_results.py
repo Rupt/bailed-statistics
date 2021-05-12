@@ -274,40 +274,45 @@ def dump(args, content):
         pickle.dump(content, file_)
 
 
+def load(args):
+    """ Generate (seed_to_filename, invert_dumps, test_dumps) from args. """
+    for filename in args.load:
+        try:
+            with open(filename, "rb") as file_:
+                seed, invert_dumps, test_dumps = pickle.load(file_)
+                # Seed is either an int, or a collection of ints.
+                if isinstance(seed, int):
+                    seed = [seed]
+                seed_to_filename = {seed_i: filename for seed_i in seed}
+                yield (seed_to_filename, invert_dumps, test_dumps)
+        except:
+            # Invalid file, but we cannot raise here because that would just
+            # end the generator; None might give a useful error later.
+            yield None
+
+
 def merge(args, invert_dumps, test_dumps):
     """ Return dumped merged results comprising loaded and latest outputs.
 
         Result merging is leaky; merge in bailed batches.
     """
-    from bailed_roostats import bailmap, root_loads
+    from bailed_roostats import bailmap, cascade, root_loads
 
-    def loaded_specs():
-        for filename in args.load:
-            try:
-                with open(filename, "rb") as file_:
-                    seed, invert_dumps, test_dumps = pickle.load(file_)
-                    yield ({seed: filename}, invert_dumps, test_dumps)
-            except:
-                # Invalid file, but we can't raise here because that just
-                # ends the generator.
-                yield None
+    if not args.load:
+        return invert_dumps, test_dumps
 
-    if args.load:
-        # Iterate over loaded files and awkward this-call special case.
-        specs = loaded_specs()
+    # Iterate over loaded files and awkward this-call special case.
+    specs = list(load(args))
 
-        if invert_dumps is not None or test_dumps is not None:
-            # Prepend our new results.
-            in_spec = ({args.seed: "dump this call"}, invert_dumps, test_dumps)
-            specs = itertools.chain([in_spec], specs)
+    if invert_dumps is not None or test_dumps is not None:
+        # Add results which may have been made by `invert' and `test' args.
+        specs.append({args.seed: "dump this call"}, invert_dumps, test_dumps)
 
-        # Merge batches of smaller results.
-        batches = more_itertools.chunked(specs, args.nbatch)
-        out = bailmap(merge_batch, batches, args.processes)
-
-        reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
-        _, invert_dumps, test_dumps = functools.reduce(reduction, out)
-
+    # First merge large batches of smaller results.
+    batches = more_itertools.chunked(specs, args.nbatch)
+    out = bailmap(merge_batch, batches, args.processes)
+    reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
+    _, invert_dumps, test_dumps = cascade(reduction, list(out))
     return invert_dumps, test_dumps
 
 
