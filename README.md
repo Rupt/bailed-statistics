@@ -14,7 +14,8 @@ pool of processes which frees resources after each batch.
 
 ## Usage
 
-Set up your normal HistFitter environment.
+Set up your normal HistFitter environment;
+mine uses `lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"`.
 
 Point `upper_limit_results.py` to your discovery workspace.
 
@@ -96,8 +97,9 @@ Make plots and tables for discovery fit statistics.
 
 positional arguments:
   operations            instructions from {invert test dump output}; `invert'
-                        scans for upper limits; `test' samples for the
-                        discovery p-value; `output' dumps the plots and table
+                        scans for upper limits; `test' evaluates a discovery
+                        p-value; `dump' saves results to *_dump.pickle;
+                        `output' saves the plots and table
 
 optional arguments:
   -h, --help            show this help message and exit

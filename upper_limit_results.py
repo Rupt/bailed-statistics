@@ -19,37 +19,43 @@ Results from `invert' and `test' are serialized.
 Combine serialized results with the -load argument.
 
 
-# Example using asymptotic approximation
+# Toys example: simulate toys
+
+./upper_limit_results.py invert test dump \
+    -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
+    -prefix results/disc1/example1 \
+    -poi mu_Discovery \
+    -points 0 30 6 \
+    -ntoys 3000 \
+    -nbatch 100 \
+    -processes 16 \
+    -seed 1
+
+# Toys example: plot and tabulate
+./upper_limit_results.py output \
+    -load results/disc1/merged_dump.pickle \
+    -prefix results/disc1/example \
+    -poi mu_Discovery \
+    -lumi 139 \
+    -channel DR-Example
+
+
+# Toys example: merge multiple dumped outputs
+./upper_limit_results.py dump \
+    -load results/disc1/example*_dump.pickle \
+    -prefix results/disc1/merged
+
+
+# Asymptotics example (no bailing)
 
 ./upper_limit_results.py invert test output \
--filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example_asym \
--poi mu_Discovery \
--lumi 139 \
--channel DRInt \
--points 0 30 6 \
--calculator asymptotic
-
-
-# Example using toys
-
-./upper_limit_results.py invert test \
--filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example \
--poi mu_Discovery \
--lumi 139 \
--points 0 30 6 \
--ntoys 3000 \
--nbatch 100 \
--seed 1
-
-
-./upper_limit_results.py output \
--prefix results/disc1/example \
--load results/disc1/example*_dump.pickle \
--poi mu_Discovery \
--lumi 139 \
--channel DRInt
+    -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
+    -prefix results/disc1/example_asym \
+    -poi mu_Discovery \
+    -lumi 139 \
+    -channel DRInt \
+    -points 0 30 6 \
+    -calculator asymptotic
 
 
 # Help
@@ -116,8 +122,6 @@ class Operation(enum.Enum):
     # Output plots and tables from previous results.
     output = "output"
 
-OPERATIONS = "invert test dump output"
-
 
 
 # Core functions
@@ -131,10 +135,11 @@ def main():
     )
 
     parser.add_argument("operations", type=Operation, nargs="+",
-                        help="instructions from {%s}; " % OPERATIONS +
+                        help="instructions from {invert test dump output}; "
                              "`invert' scans for upper limits; "
-                             "`test' samples for the discovery p-value; "
-                             "`output' dumps the plots and table")
+                             "`test' evaluates a discovery p-value; "
+                             "`dump' saves results to *_dump.pickle; "
+                             "`output' saves the plots and table")
     parser.add_argument("-lumi", type=float,
                         help="luminosity in inverse femtobarns")
     parser.add_argument("-prefix", type=str,
