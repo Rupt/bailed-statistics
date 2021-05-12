@@ -107,10 +107,12 @@ logging.basicConfig(level=logging.INFO)
 
 class Operation(enum.Enum):
     """ We make HypoTest inversion results, HypoTest results, and output. """
-    # Produce a HypoTestInverterResult over parameter points.
+    # Make a HypoTestInverterResult.
     invert = "invert"
-    # Produce a HypoTestResult.
+    # Make a HypoTestResult.
     test = "test"
+    # Dump the result of merging new or loaded results.
+    dump = "dump"
     # Output plots and tables from previous results.
     output = "output"
 
@@ -139,7 +141,7 @@ def main():
                         help="output file paths' prefix")
     parser.add_argument("-load", type=str, nargs="*", default=[],
                         help="filenames of pickled results from previous runs "
-                             "to combine; for `output'")
+                             "to combine; for `dump' or `output'")
     parser.add_argument("-filename", type=str,
                         help="workspace file path")
     parser.add_argument("-workspace", type=str, default="combined",
@@ -172,11 +174,11 @@ def main():
                         help="test statistic type "
                              "from bailed_roostats.TestStatistic")
     parser.add_argument("-channel", type=str, default="DR-WHO",
-                        help="channel name for the tex table")
+                        help="channel name for the `output' tex table")
     parser.add_argument("-cl", type=float, default=0.95,
                         help="level for 'upper limits', in (0, 1)")
     parser.add_argument("-use_cls", type=bool, default=True,
-                        help="use CLs for limits; if false use CLs+b")
+                        help="use CLs for limits; if false, use CLs+b")
 
     args = parser.parse_args()
 
@@ -203,32 +205,29 @@ def main():
 
 def execute(args):
     """ Run our operations for given args namespace, as produced by main(). """
-    from bailed_roostats import root_loads
-
     do_invert = Operation.invert in args.operations
     do_test = Operation.test in args.operations
+    do_dump = Operation.dump in args.operations
     do_output = Operation.output in args.operations
 
     # Prepare and dump new results.
-    invert_dumps = invert(args) if do_invert else None
-    test_dumps = test(args) if do_test else None
+    if do_invert:
+        invert_dumps = invert(args)
+    else:
+        invert_dumps = None
 
-    if do_invert or do_test:
-        dump(args, (args.seed, invert_dumps, test_dumps))
+    if do_test:
+        test_dumps = test(args)
+    else:
+        test_dumps = None
+
+    seed, invert_dumps, test_dumps = merge(args, invert_dumps, test_dumps)
+
+    if do_dump:
+        dump(args, (seed, invert_dumps, test_dumps))
 
     if do_output:
-        # Load previous results to combine in output.
-        invert_dumps, test_dumps = merge(args, invert_dumps, test_dumps)
-
-        if invert_dumps is None:
-            raise ValueError("No `invert' result loaded.")
-        if test_dumps is None:
-            raise ValueError("No `test' result loaded.")
-
-        invert_result = root_loads(invert_dumps)
-        test_result = root_loads(test_dumps)
-
-        output(args, invert_result, test_result)
+        output(args, invert_dumps, test_dumps)
 
 
 def invert(args):
@@ -272,6 +271,7 @@ def dump(args, content):
     filename = args.prefix + "_dump.pickle"
     with open(filename, "wb") as file_:
         pickle.dump(content, file_)
+    LOGGER.info("Dumped to %r", filename)
 
 
 def load(args):
@@ -280,7 +280,7 @@ def load(args):
         try:
             with open(filename, "rb") as file_:
                 seed, invert_dumps, test_dumps = pickle.load(file_)
-                # Seed is either an int, or a collection of ints.
+                # Seed is either an int or a collection of ints.
                 if isinstance(seed, int):
                     seed = [seed]
                 seed_to_filename = {seed_i: filename for seed_i in seed}
@@ -292,9 +292,11 @@ def load(args):
 
 
 def merge(args, invert_dumps, test_dumps):
-    """ Return dumped merged results comprising loaded and latest outputs.
+    """ Return dumped merged results comprising loaded and given results.
 
-        Result merging is leaky; merge in bailed batches.
+        invert_dumps or test_dumps may be None.
+
+        Avoid leaky merging with bailed batches.
     """
     from bailed_roostats import bailmap, cascade, root_loads
 
@@ -306,14 +308,23 @@ def merge(args, invert_dumps, test_dumps):
 
     if invert_dumps is not None or test_dumps is not None:
         # Add results which may have been made by `invert' and `test' args.
-        specs.append({args.seed: "dump this call"}, invert_dumps, test_dumps)
+        dump_this_call = args.prefix + "_dump.pickle"
+        specs.append({args.seed: dump_this_call}, invert_dumps, test_dumps)
 
     # First merge large batches of smaller results.
     batches = more_itertools.chunked(specs, args.nbatch)
     out = bailmap(merge_batch, batches, args.processes)
+
+    # Second merge larger results in a pairwise fashopn.
     reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
-    _, invert_dumps, test_dumps = cascade(reduction, out)
-    return invert_dumps, test_dumps
+    seed_to_filename, invert_dumps, test_dumps = cascade(reduction, out)
+
+    # Our seed contains all input seeds
+    seed = frozenset(seed_to_filename.keys())
+    if len(seed) == 1:
+        seed = more_itertools.one(seed)
+
+    return seed, invert_dumps, test_dumps
 
 
 def merge_batch(specs):
@@ -362,10 +373,18 @@ def merge_batch(specs):
     return seed_to_filename, invert_dumps, test_dumps
 
 
-def output(args, invert_result, test_result):
+def output(args, invert_dumps, test_dumps):
     """ Output plots and tables. """
     import ROOT
-    from bailed_roostats import CalculatorType, TOY_CALCULATORS
+    from bailed_roostats import CalculatorType, TOY_CALCULATORS, root_loads
+
+    if invert_dumps is None:
+        raise ValueError("No `invert' result loaded.")
+    if test_dumps is None:
+        raise ValueError("No `test' result loaded.")
+
+    invert_result = root_loads(invert_dumps)
+    test_result = root_loads(test_dumps)
 
     # Log result points and ntoys
     if args.calculator in TOY_CALCULATORS:
@@ -607,7 +626,7 @@ def make_seed():
         In parallel, process ids will differ.
 
         Only 16 bits is pathetic, but TRandom3.SetSeed only uses the low 32 bits
-        of its argument and we reserve the others for batched execution.
+        of its argument, and we reserve the others for batched execution.
     """
     hash_ = hash((0xd1ce, os.getpid(), time.time()))
     hash_ ^= hash_ >> 32
