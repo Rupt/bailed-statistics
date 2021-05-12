@@ -26,51 +26,59 @@ Make plots and tables with with `output` with results combined by `-load`.
 ## Examples
 
 ### Toys
+
+Simulate toys.
+
 ```bash
 ./upper_limit_results.py invert test dump \
--filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example1 \
--poi mu_Discovery \
--points 0 30 6 \
--ntoys 3000 \
--nbatch 100 \
--processes 16 \
--seed 1
+    -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
+    -prefix results/disc1/example1 \
+    -poi mu_Discovery \
+    -points 0 30 6 \
+    -ntoys 3000 \
+    -nbatch 100 \
+    -processes 16 \
+    -seed 1
 
 ```
 
-... optionally make more with different `-prefix` and `-seed` ...
-
-```bash
-./upper_limit_results.py dump \
--prefix results/disc1/merged \
--load results/disc1/example*_dump.pickle
-
-```
+Plot and tabulate.
 
 ```bash
 ./upper_limit_results.py output \
--prefix results/disc1/example \
--load results/disc1/merged_dump.pickle \
--poi mu_Discovery \
--lumi 139 \
--channel DR-Example
+    -load results/disc1/merged_dump.pickle \
+    -prefix results/disc1/example \
+    -poi mu_Discovery \
+    -lumi 139 \
+    -channel DR-Example
 
 ```
+
+Optional: combine multiple output files.
+
+```bash
+./upper_limit_results.py dump \
+    -load results/disc1/example*_dump.pickle \
+    -prefix results/disc1/merged
+
+```
+
 
 ### Asymptotics
+
 ```bash
 ./upper_limit_results.py invert test output \
--filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example_asym \
--poi mu_Discovery \
--lumi 139 \
--channel DRInt \
--points 0 30 6 \
--calculator asymptotic
+    -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
+    -prefix results/disc1/example_asym \
+    -poi mu_Discovery \
+    -lumi 139 \
+    -channel DRInt \
+    -points 0 30 6 \
+    -calculator asymptotic
 
 ```
 
+### Find more in ./examples/
 
 ## Help
 ```
@@ -87,9 +95,9 @@ usage: upper_limit_results.py [-h] [-lumi LUMI] [-prefix PREFIX]
 Make plots and tables for discovery fit statistics.
 
 positional arguments:
-  operations            instructions from {invert output test}; `invert' scans
-                        for upper limits; `test' samples for the discovery
-                        p-value; `output' dumps the plots and table
+  operations            instructions from {invert test dump output}; `invert'
+                        scans for upper limits; `test' samples for the
+                        discovery p-value; `output' dumps the plots and table
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -97,7 +105,7 @@ optional arguments:
   -prefix PREFIX        output file paths' prefix
   -load [LOAD [LOAD ...]]
                         filenames of pickled results from previous runs to
-                        combine; for `output' (default: [])
+                        combine; for `dump' or `output' (default: [])
   -filename FILENAME    workspace file path
   -workspace WORKSPACE  workspace name in its file (default: combined)
   -poi POI              parameter of interest name (default: mu_SIG)
@@ -107,10 +115,10 @@ optional arguments:
   -ntoys NTOYS          number of toys to simulate (default: 3000)
   -seed SEED            random seed in [0, 2**16); make yours unique; if None,
                         we use a mix of time and process id (default: None)
-  -nbatch NBATCH        batch size for toys; reduce to cut memory usage
-                        (default: 10)
+  -nbatch NBATCH        size of batches which execute leaky code; reduce to
+                        cut memory usage (default: 100)
   -processes PROCESSES  maximum number of processes for generating toys; also
-                        capped by your cpu count (default: 16)
+                        capped by your cpu count (default: 1)
   -calculator CALCULATOR
                         calculator type in {frequentist, hybrid, asymptotic,
                         asimov}; see bailed_roostats.CalculatorType;
@@ -118,9 +126,10 @@ optional arguments:
                         standard without toys (default: frequentist)
   -statistic STATISTIC  test statistic type from bailed_roostats.TestStatistic
                         (default: profile_likelihood_one_sided)
-  -channel CHANNEL      channel name for the tex table (default: DR-WHO)
+  -channel CHANNEL      channel name for the `output' tex table (default: DR-
+                        WHO)
   -cl CL                level for 'upper limits', in (0, 1) (default: 0.95)
-  -use_cls USE_CLS      use CLs for limits; if false use CLs+b (default: True)
+  -use_cls USE_CLS      use CLs for limits; else use CLs+b (default: True)
 
 ```
 
