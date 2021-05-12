@@ -312,7 +312,7 @@ def merge(args, invert_dumps, test_dumps):
     batches = more_itertools.chunked(specs, args.nbatch)
     out = bailmap(merge_batch, batches, args.processes)
     reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
-    _, invert_dumps, test_dumps = cascade(reduction, list(out))
+    _, invert_dumps, test_dumps = cascade(reduction, out)
     return invert_dumps, test_dumps
 
 
