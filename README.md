@@ -27,26 +27,35 @@ Make plots and tables with with `output` with results combined by `-load`.
 
 ### Toys
 ```bash
-./upper_limit_results.py invert test \
+./upper_limit_results.py invert test dump \
 -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
--prefix results/disc1/example \
+-prefix results/disc1/example1 \
 -poi mu_Discovery \
--lumi 139 \
 -points 0 30 6 \
 -ntoys 3000 \
 -nbatch 100 \
+-processes 16 \
 -seed 1
+
 ```
 
 ... optionally make more with different `-prefix` and `-seed` ...
 
 ```bash
+./upper_limit_results.py dump \
+-prefix results/disc1/merged \
+-load results/disc1/example*_dump.pickle
+
+```
+
+```bash
 ./upper_limit_results.py output \
 -prefix results/disc1/example \
--load results/disc1/example*_dump.pickle \
+-load results/disc1/merged_dump.pickle \
 -poi mu_Discovery \
 -lumi 139 \
--channel DRInt
+-channel DR-Example
+
 ```
 
 ### Asymptotics
@@ -59,6 +68,7 @@ Make plots and tables with with `output` with results combined by `-load`.
 -channel DRInt \
 -points 0 30 6 \
 -calculator asymptotic
+
 ```
 
 

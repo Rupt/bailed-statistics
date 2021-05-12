@@ -183,7 +183,6 @@ def main():
     args = parser.parse_args()
 
     # Prepare arguments.
-    assert args.lumi > 0
     assert 0 < args.cl < 1
     assert args.points[2] == int(args.points[2]), "count must be integral"
     args.points[2] = int(args.points[2])
@@ -276,6 +275,7 @@ def dump(args, content):
 
 def load(args):
     """ Generate (seed_to_filename, invert_dumps, test_dumps) from args. """
+    LOGGER.info("Loading %d inputs", len(args.load))
     for filename in args.load:
         try:
             with open(filename, "rb") as file_:
@@ -301,10 +301,10 @@ def merge(args, invert_dumps, test_dumps):
     from bailed_roostats import bailmap, cascade, root_loads
 
     if not args.load:
-        return invert_dumps, test_dumps
+        return args.seed, invert_dumps, test_dumps
 
     # Iterate over loaded files and awkward this-call special case.
-    specs = list(load(args))
+    specs = load(args)
 
     if invert_dumps is not None or test_dumps is not None:
         # Add results which may have been made by `invert' and `test' args.
@@ -377,6 +377,8 @@ def output(args, invert_dumps, test_dumps):
     """ Output plots and tables. """
     import ROOT
     from bailed_roostats import CalculatorType, TOY_CALCULATORS, root_loads
+
+    assert args.lumi > 0
 
     if invert_dumps is None:
         raise ValueError("No `invert' result loaded.")
