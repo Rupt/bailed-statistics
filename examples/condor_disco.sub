@@ -1,0 +1,44 @@
+# Batched discovery fits
+# Define all of the following through condor_submit:
+# REGION
+# START STOP COUNT
+# NTOYS
+# OFFSET
+# NJOBS
+
+# Fill me in!
+JOBS_PATH=your_condor_script_path
+
+executable = \
+    $(JOBS_PATH)/condor_disco.sh
+arguments = \
+    $(Process) \
+    $(REGION) \
+    $(START) $(STOP) $(COUNT) \
+    $(NTOYS) \
+    $(OFFSET)
+
+getenv = \
+    true
+should_transfer_files = \
+    yes
+when_to_transfer_output = \
+    ON_EXIT
+requirements = \
+    ((POOL == "GEN_FARM") || (POOL == "GENERAL")) \
+    && (Arch == "X86_64") \
+    && (OSTYPE == "CC7")
+request_memory = \
+    1GB
+rank = \
+    kflops
+
+# Uncomment if you love text files.
+# output = \
+#     $(JOBS_PATH)/output_$(REGION)_$(Process).txt
+# log = \
+#     $(JOBS_PATH)/$(REGION)_$(Process).log
+# error = \
+#     $(JOBS_PATH)/error_$(REGION)_$(Process).txt
+
+queue $(NJOBS)

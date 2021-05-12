@@ -1,14 +1,18 @@
 #!/bin/bash
 # Run upper_limit_results.py in multiple processes on one machine.
 
+# Fill me in!
+HISTFITTER_INSTALL_PATH=your_histfitter_install_path
+HISTFITTER_PATH=your_histfitter_working_path
+
+# Set an environment.
 setupATLAS
-lsetup git
 lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"
 source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
 
 cd ${HISTFITTER_PATH}
 
-# Make two sets of results with different seed and prefix.
+# Make two sets of results with different seeds and prefixes.
 ./upper_limit_results.py invert test dump \
     -filename results/disc1/Discovery_DRInt_combined_NormalMeasurement_model.root \
     -prefix results/disc1/example1 \

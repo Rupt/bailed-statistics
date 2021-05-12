@@ -116,7 +116,7 @@ class Operation(enum.Enum):
     # Output plots and tables from previous results.
     output = "output"
 
-OPERATIONS = " ".join(op.name for op in Operation)
+OPERATIONS = "invert test dump output"
 
 
 
@@ -178,7 +178,7 @@ def main():
     parser.add_argument("-cl", type=float, default=0.95,
                         help="level for 'upper limits', in (0, 1)")
     parser.add_argument("-use_cls", type=bool, default=True,
-                        help="use CLs for limits; if false, use CLs+b")
+                        help="use CLs for limits; else use CLs+b")
 
     args = parser.parse_args()
 
