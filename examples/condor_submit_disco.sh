@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# Launch some jobs for discovery regions of the SUSY 2Ljets 2018 analysis.
+#
+# Each submission uses NJOBS seeds counting up form OFFSET.
+# Seeds must only be unique within each region, where results will be merged.
+#
+# See condor_disco.sub and condor_disco.sh for how arguments are used.
+#
 
 # Fill me in!
 HISTFITTER_INSTALL_PATH=your_histfitter_install_path
@@ -11,15 +19,6 @@ lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"
 source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
 
 cd ${HISTFITTER_PATH}
-
-#
-# Launch some jobs for discovery regions of the SUSY 2Ljets 2018 analysis.
-#
-# Each submission uses NJOBS seeds counting up form OFFSET.
-# Seeds must only be unique within each region, where results will be merged.
-#
-# See condor_disco.sub and condor_disco.sh for how arguments are used.
-#
 
 # OffShell
 condor_submit \

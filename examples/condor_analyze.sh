@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Post-processes condor jobs.
+# Post-processes condor jobs; merge results, output plots and tables.
 #
 
 # Fill me in!
