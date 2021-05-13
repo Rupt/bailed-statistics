@@ -1,5 +1,7 @@
 #!/bin/bash
-# Run upper_limit_results.py in multiple processes on one machine.
+#
+# Make toys with upper_limit_results.py in multiple processes on one machine.
+#
 
 # Fill me in!
 HISTFITTER_INSTALL_PATH=your_histfitter_install_path

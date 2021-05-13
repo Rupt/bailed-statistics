@@ -1,10 +1,13 @@
-# Batched discovery fits
+#
+# Job definition for condor-batched toys.
+#
 # Define all of the following through condor_submit:
-# REGION
-# START STOP COUNT
-# NTOYS
-# OFFSET
-# NJOBS
+#    REGION
+#    START STOP COUNT
+#    NTOYS
+#    OFFSET
+#    NJOBS
+#
 
 # Fill me in!
 JOBS_PATH=your_condor_script_path

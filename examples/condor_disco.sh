@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Executable to make toys with condor.
+#
 
 # Fill me in!
 DISCO_HF=your_histfitter_working_path

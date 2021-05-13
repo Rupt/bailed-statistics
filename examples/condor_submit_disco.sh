@@ -17,7 +17,6 @@ cd ${HISTFITTER_PATH}
 #
 # Each submission uses NJOBS seeds counting up form OFFSET.
 # Seeds must only be unique within each region, where results will be merged.
-# This example keeps them separate for no good reason.
 #
 # See condor_disco.sub and condor_disco.sh for how arguments are used.
 #
@@ -37,7 +36,7 @@ condor_submit \
     REGION=Int \
     START=0 STOP=30 COUNT=16 \
     NTOYS=200 \
-    OFFSET=1000 \
+    OFFSET=0 \
     NJOBS=1000
 
 # High
@@ -46,7 +45,7 @@ condor_submit \
     REGION=High \
     START=0 STOP=10 COUNT=11 \
     NTOYS=200 \
-    OFFSET=2000 \
+    OFFSET=0 \
     NJOBS=1000
 
 # llbb
@@ -55,7 +54,7 @@ condor_submit \
     REGION=llbb \
     START=0 STOP=10 COUNT=11 \
     NTOYS=200 \
-    OFFSET=3000 \
+    OFFSET=0 \
     NJOBS=1000
 
 # Low
@@ -64,5 +63,15 @@ condor_submit \
     REGION=Low \
     START=0 STOP=30 COUNT=16 \
     NTOYS=200 \
-    OFFSET=4000 \
+    OFFSET=0 \
     NJOBS=1000
+
+
+# Refine with more toys where needed.
+condor_submit \
+    ${JOBS_PATH}/condor_disco.sub \
+    REGION=Low \
+    START=2 STOP=10 COUNT=5 \
+    NTOYS=200 \
+    OFFSET=0 \
+    NJOBS=2000
