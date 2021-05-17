@@ -525,10 +525,10 @@ def textable(
         r"\setlength{\tabcolsep}{0.0pc}\n "
         r"\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc}\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
-        r"\textbf{Signal channel} & "
-        r"$\langle\epsilon{\rm \sigma}\rangle_{\rm obs}^{%d}$[fb] & " % level +
-        r"$S_{\rm obs}^{%d}$ & " % level +
-        r"$S_{\rm exp}^{%d}$ & " % level +
+        r"\textbf{Signal channel} &\n "
+        r"$\langle\epsilon\mathrm{\sigma}\rangle_\mathrm{obs}^{%d}$[fb] &\n " % level +
+        r"$S_\mathrm{obs}^{%d}$\n & " % level +
+        r"$S_\mathrm{exp}^{%d}$\n & " % level +
         r"$\mathrm{CL_b}$ &\n "
         r"$p(s=0)$ ($Z$) \\\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
@@ -605,11 +605,11 @@ def textable(
         r"Model-independent fit results.\n "
         r"Left to right: the observed "
         r"%d\%% upper limit on the visible cross-section\n " % level +
-        r"$\langle\epsilon\sigma\rangle_{\rm obs}^{%d}$,\n " % level +
+        r"$\langle\epsilon\sigma\rangle_\mathrm{obs}^{%d}$,\n " % level +
         r"its corresponding signal expectation "
-        r"$S_{\rm obs}^{%d}$,\n " % level +
+        r"$S_\mathrm{obs}^{%d}$,\n " % level +
         r"expected %d\%% upper limits on the signal expectation " % level +
-        r"$S_{\rm exp}^{%d}$ as would be obtained\n " % level +
+        r"$S_\mathrm{exp}^{%d}$ as would be obtained\n " % level +
         r"were the data the background expectation or its "
         r"$\pm 1\sigma$ variations,\n "
         r"$\mathrm{CL_b}$ evaluated with the "
