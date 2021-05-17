@@ -113,13 +113,13 @@ logging.basicConfig(level=logging.INFO)
 
 class Operation(enum.Enum):
     """ We make HypoTest inversion results, HypoTest results, and output. """
-    # Make a HypoTestInverterResult.
+    # Make a HypoTestInverterResult (for the upper limtis).
     invert = "invert"
-    # Make a HypoTestResult.
+    # Make a HypoTestResult (for the discovery p-value).
     test = "test"
-    # Dump the result of merging new or loaded results.
+    # Save merged new and loaded results.
     dump = "dump"
-    # Output plots and tables from previous results.
+    # Save plots and tables from previous results.
     output = "output"
 
 
@@ -621,7 +621,7 @@ def textable(
         r"All p-values are estimated by\n %s.\n " % calculator_text +
         r"}\n "
         r"\label{tab:results.discoxsec.%s}\n " % channel +
-        r"\end{table}\n"
+        r"\end{table}\n "
     )
     return table.replace("\\n\\", "\n\\").replace(r"\n ", "\n")
 
