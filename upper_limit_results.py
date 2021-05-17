@@ -525,7 +525,7 @@ def textable(
         r"\setlength{\tabcolsep}{0.0pc}\n "
         r"\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc}\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
-        r"{\bf Signal channel} & "
+        r"\textbf{Signal channel} & "
         r"$\langle\epsilon{\rm \sigma}\rangle_{\rm obs}^{%d}$[fb] & " % level +
         r"$S_{\rm obs}^{%d}$ & " % level +
         r"$S_{\rm exp}^{%d}$ & " % level +
