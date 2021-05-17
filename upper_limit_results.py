@@ -567,8 +567,8 @@ def textable(
                           r"test statistic.")
     elif statistic is TestStatistic.profile_likelihood_one_sided:
         statistic_text = (r"Upper limits use the one-sided profile likelihood "
-                          r"test statistic;\n "
-                          r"the discovery p-value uses a profile likelihood "
+                          r"test statistic.\n "
+                          r"The discovery p-value uses a profile likelihood "
                           r"test statistic in a one-sided test.")
     else:
         raise ValueError("statistic must be in bailed_roostats.TestStatistic; "
