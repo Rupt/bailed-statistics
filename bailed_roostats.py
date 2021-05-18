@@ -618,7 +618,7 @@ def root_loads(name_binary):
     root_object = tfile.Get(name)
     if hasattr(root_object, "SetDirectory"):
         # Avoid its deletion with closing the file.
-        root_object.SetDirectory(ROOT.gROOT)
+        root_object.SetDirectory(ROOT.nullptr)
     tfile.Close()
     file_.close()
     return root_object
