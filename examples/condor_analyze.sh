@@ -16,6 +16,7 @@ source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
 cd ${HISTFITTER_PATH}
 mkdir -p toys merged
 
+# Merge and output all 2Ljets discovery regions
 regions='OffShell Low Int High llbb'
 
 for region in ${regions}
