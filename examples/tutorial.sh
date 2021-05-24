@@ -30,5 +30,5 @@
     -lumi 4.713 \
     -ntoys 1000 \
     -nbatch 100 \
-    -processes 4 \
+    -processes 16 \
     -seed 1
