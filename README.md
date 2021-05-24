@@ -104,7 +104,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -lumi LUMI            luminosity in inverse femtobarns
-  -prefix PREFIX        output file paths' prefix
+  -prefix PREFIX        output file paths' prefix (default: upper_limit)
   -load [LOAD [LOAD ...]]
                         filenames of pickled results from previous runs to
                         combine; for `dump' or `output' (default: [])

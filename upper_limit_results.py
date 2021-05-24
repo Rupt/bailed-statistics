@@ -142,7 +142,7 @@ def main():
                              "`output' saves the plots and table")
     parser.add_argument("-lumi", type=float,
                         help="luminosity in inverse femtobarns")
-    parser.add_argument("-prefix", type=str,
+    parser.add_argument("-prefix", type=str, default="upper_limit",
                         help="output file paths' prefix")
     parser.add_argument("-load", type=str, nargs="*", default=[],
                         help="filenames of pickled results from previous runs "
