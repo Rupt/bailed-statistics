@@ -15,7 +15,7 @@
 #
 # whose tex table is at examples/tutorial_UpperLimitTable_SS_nToys1000.tex.
 #
-# Beware that results with random number generation.
+# (beware that results vary with random number generation)
 #
 # This script outputs results including a comparable tex table at
 #
