@@ -1,4 +1,3 @@
-#
 # Job definition for condor-batched toys.
 #
 # Define all of the following through condor_submit:
