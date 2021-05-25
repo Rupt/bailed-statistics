@@ -1,11 +1,15 @@
-#!/bin/bash
-#
-# Launch some jobs for discovery regions of the SUSY 2Ljets 2018 analysis.
+# Launch some jobs for discovery regions.
 #
 # Each submission uses NJOBS seeds counting up form OFFSET.
 # Seeds must only be unique within each region, where results will be merged.
 #
 # See condor_disco.sub and condor_disco.sh for how arguments are used.
+#
+# Usage:
+#
+#     Set HISTFITTER_INSTALL_PATH, HISTFITTER_PATH, and JOBS_PATH.
+#
+#     source examples/condor_submit_disco.sh
 #
 
 # Fill me in!

@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Reproduce the tutorial example:
 #
 #     twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HistFitterTutorial#Model_independent_upper_limits_t
@@ -21,6 +19,22 @@
 #
 #     examples/tutorial_upper_limit_table_SS.tex
 #
+# Usage:
+#
+#     Set HISTFITTER_INSTALL_PATH below.
+#
+#     source examples/tutorial.sh
+#
+
+# Fill me in!
+# HISTFITTER_INSTALL_PATH=your_histfitter_install_path
+HISTFITTER_INSTALL_PATH=/var/work/pcnq/tombs/HistFitter65/
+
+
+# Set an environment.
+setupATLAS
+lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"
+source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
 
 ./upper_limit_results.py invert test output \
     -filename examples/tutorial_SPlusB_combined_NormalMeasurement_model.root \

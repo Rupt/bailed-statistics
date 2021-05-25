@@ -1,6 +1,12 @@
-#!/bin/bash
-#
 # Make toys with upper_limit_results.py in multiple processes on one machine.
+#
+# Usage:
+#
+#     Set HISTFITTER_INSTALL_PATH and HISTFITTER_PATH
+#
+#     Set -filename, -prefix and -load arguments (or any others).
+#
+#     source examples/basic.sh
 #
 
 # Fill me in!
