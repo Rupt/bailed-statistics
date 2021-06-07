@@ -651,6 +651,10 @@ def get_workspace(filename, workspacename):
     except ReferenceError:
         raise IOError("Failed to load workspace %r from file %r" %
             (workspacename, filename))
+
+    ROOT.Util.resetAllErrors(workspace)
+    ROOT.Util.resetAllValues(workspace)
+    ROOT.Util.resetAllNominalValues(workspace)
     return workspace
 
 
