@@ -5,11 +5,13 @@ Freely allocate memory, and let the operating system clean up.
 This is an efficient design pattern for short-lived programs;
 to track and free memory oneself is duplication of effort.
 
-RooStats and its HistFitter extensions operate under this design.
-We must therefore ensure short lives to our programs using them.
+RooStats and its HistFitter extensions operate under this design,
+so we must ensure short lives to our programs using them.
 
 We execute leaky code to simulate small batches of toys in a
 pool of processes which frees resources after each batch.
+
+Care is taken to use unique random seeds so results combine accurately.
 
 
 ## Usage
