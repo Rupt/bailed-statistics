@@ -17,7 +17,7 @@ Care is taken to use unique random seeds so results combine accurately.
 ## Usage
 
 Set up your normal HistFitter environment;
-mine uses `lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"`.
+mine uses `lsetup "views LCG_99python2 x86_64-centos7-gcc8-opt"`.
 
 Point `upper_limit_results.py` to your discovery workspace.
 
