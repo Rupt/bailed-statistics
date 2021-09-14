@@ -10,7 +10,7 @@ This script executes in three operations:
         Prepare "HypoTestInverterResult" by evaluating statistics at an array
         of parameter-of-interest points.
     test:
-        Prepare "HypoTestResult" by evalulating statistics at null values.
+        Prepare "HypoTestResult" by evaluating statistics at null values.
     output:
         Dump plots and results table.
 
@@ -320,7 +320,7 @@ def merge(args, invert_dumps, test_dumps):
     batches = more_itertools.chunked(specs, args.nbatch)
     out = bailmap(merge_batch, batches, args.processes)
 
-    # Second merge larger results in a pairwise fashopn.
+    # Second merge larger results in a pairwise fashion.
     reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
     seed_to_filename, invert_dumps, test_dumps = cascade(reduction, out)
 
