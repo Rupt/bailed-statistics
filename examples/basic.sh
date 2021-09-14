@@ -15,8 +15,8 @@ HISTFITTER_PATH=your_histfitter_working_path
 
 # Set an environment.
 setupATLAS
-lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"
-source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
+lsetup "views LCG_99python2 x86_64-centos7-gcc8-opt"
+source ${HISTFITTER_INSTALL_PATH}/setup.sh
 
 cd ${HISTFITTER_PATH}
 

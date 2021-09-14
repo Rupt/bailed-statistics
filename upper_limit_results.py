@@ -314,7 +314,10 @@ def merge(args, invert_dumps, test_dumps):
     if invert_dumps is not None or test_dumps is not None:
         # Add results which may have been made by `invert' and `test' args.
         dump_this_call = args.prefix + "_dump.pickle"
-        specs.append({args.seed: dump_this_call}, invert_dumps, test_dumps)
+        seed_to_filename = {args.seed: dump_this_call}
+        specs = itertools.chain(
+            specs,
+            [(seed_to_filename, invert_dumps, test_dumps)])
 
     # First merge large batches of smaller results.
     batches = more_itertools.chunked(specs, args.nbatch)

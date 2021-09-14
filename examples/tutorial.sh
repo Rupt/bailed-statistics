@@ -27,14 +27,13 @@
 #
 
 # Fill me in!
-# HISTFITTER_INSTALL_PATH=your_histfitter_install_path
-HISTFITTER_INSTALL_PATH=/var/work/pcnq/tombs/HistFitter65/
+HISTFITTER_INSTALL_PATH=your_histfitter_install_path
 
 
 # Set an environment.
 setupATLAS
-lsetup "root 6.20.06-x86_64-centos7-gcc8-opt"
-source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
+lsetup "lsetup \"views LCG_99python2 x86_64-centos7-gcc8-opt\""
+source ${HISTFITTER_INSTALL_PATH}/setup.sh
 
 ./upper_limit_results.py invert test output \
     -filename examples/tutorial_SPlusB_combined_NormalMeasurement_model.root \
@@ -46,3 +45,18 @@ source ${HISTFITTER_INSTALL_PATH}/setup_afs.sh
     -nbatch 100 \
     -processes 16 \
     -seed 1
+
+
+# exercise loading and merging with newly generated toys
+# tutorial2 outputs have twice as many toys, so more precision
+./upper_limit_results.py invert test output dump \
+    -load examples/tutorial_dump.pickle \
+    -filename examples/tutorial_SPlusB_combined_NormalMeasurement_model.root \
+    -prefix examples/tutorial2 \
+    -channel SS \
+    -poi mu_SS \
+    -lumi 4.713 \
+    -ntoys 1000 \
+    -nbatch 100 \
+    -processes 16 \
+    -seed 2
