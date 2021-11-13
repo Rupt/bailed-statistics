@@ -108,11 +108,12 @@ LOGGER = logging.getLogger("upper_limit_results")
 logging.basicConfig(level=logging.INFO)
 
 
-
 # Types
 
+
 class Operation(enum.Enum):
-    """ We make HypoTest inversion results, HypoTest results, and output. """
+    """We make HypoTest inversion results, HypoTest results, and output."""
+
     # Make a HypoTestInverterResult (for the upper limtis).
     invert = "invert"
     # Make a HypoTestResult (for the discovery p-value).
@@ -123,67 +124,105 @@ class Operation(enum.Enum):
     output = "output"
 
 
-
 # Core functions
 
+
 def main():
-    """ Interpret the user's incantations. """
+    """Interpret the user's incantations."""
     parser = argparse.ArgumentParser(
         description="Make plots and tables for discovery fit statistics.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         argument_default=argparse.SUPPRESS,
     )
 
-    parser.add_argument("operations", type=Operation, nargs="+",
-                        help="instructions from {invert test dump output}; "
-                             "`invert' scans for upper limits; "
-                             "`test' evaluates a discovery p-value; "
-                             "`dump' saves results to *_dump.pickle; "
-                             "`output' saves the plots and table")
-    parser.add_argument("-lumi", type=float,
-                        help="luminosity in inverse femtobarns")
-    parser.add_argument("-prefix", type=str, default="upper_limit",
-                        help="output file paths' prefix")
-    parser.add_argument("-load", type=str, nargs="*", default=[],
-                        help="filenames of pickled results from previous runs "
-                             "to combine; for `dump' or `output'")
-    parser.add_argument("-filename", type=str,
-                        help="workspace file path")
-    parser.add_argument("-workspace", type=str, default="combined",
-                        help="workspace name in its file")
-    parser.add_argument("-poi", type=str, default="mu_SIG",
-                        help="parameter of interest name")
-    parser.add_argument("-points", type=float, nargs=3, default=[0.0, 40.0, 20],
-                        metavar=("START", "STOP", "COUNT"),
-                        help="inclusive linear spacing of poi points; "
-                             "for `invert'")
-    parser.add_argument("-ntoys", type=int, default=3000,
-                        help="number of toys to simulate")
-    parser.add_argument("-seed", type=int, default=None,
-                        help="random seed in [0, 2**16); make yours unique; "
-                             "if None, we use a mix of time and process id")
-    parser.add_argument("-nbatch", type=int, default=100,
-                        help="size of batches which execute leaky code; "
-                             "reduce to cut memory usage")
-    parser.add_argument("-processes", type=int, default=1,
-                        help="maximum number of processes for generating toys; "
-                             "also capped by your cpu count")
-    parser.add_argument("-calculator", type=str, default="frequentist",
-                        help="calculator type in "
-                             "{frequentist, hybrid, asymptotic, asimov}; "
-                             "see bailed_roostats.CalculatorType; "
-                             "frequentist is standard with toys; "
-                             "asymptotic is standard without toys")
-    parser.add_argument("-statistic", type=str,
-                        default="profile_likelihood_one_sided",
-                        help="test statistic type "
-                             "from bailed_roostats.TestStatistic")
-    parser.add_argument("-channel", type=str, default="DR-WHO",
-                        help="channel name for the `output' tex table")
-    parser.add_argument("-cl", type=float, default=0.95,
-                        help="level for 'upper limits', in (0, 1)")
-    parser.add_argument("-use_cls", type=bool, default=True,
-                        help="use CLs for limits; else use CLs+b")
+    parser.add_argument(
+        "operations",
+        type=Operation,
+        nargs="+",
+        help="instructions from {invert test dump output}; "
+        "`invert' scans for upper limits; "
+        "`test' evaluates a discovery p-value; "
+        "`dump' saves results to *_dump.pickle; "
+        "`output' saves the plots and table",
+    )
+    parser.add_argument("-lumi", type=float, help="luminosity in inverse femtobarns")
+    parser.add_argument(
+        "-prefix", type=str, default="upper_limit", help="output file paths' prefix"
+    )
+    parser.add_argument(
+        "-load",
+        type=str,
+        nargs="*",
+        default=[],
+        help="filenames of pickled results from previous runs "
+        "to combine; for `dump' or `output'",
+    )
+    parser.add_argument("-filename", type=str, help="workspace file path")
+    parser.add_argument(
+        "-workspace", type=str, default="combined", help="workspace name in its file"
+    )
+    parser.add_argument(
+        "-poi", type=str, default="mu_SIG", help="parameter of interest name"
+    )
+    parser.add_argument(
+        "-points",
+        type=float,
+        nargs=3,
+        default=[0.0, 40.0, 20],
+        metavar=("START", "STOP", "COUNT"),
+        help="inclusive linear spacing of poi points; for `invert'",
+    )
+    parser.add_argument(
+        "-ntoys", type=int, default=3000, help="number of toys to simulate"
+    )
+    parser.add_argument(
+        "-seed",
+        type=int,
+        default=None,
+        help="random seed in [0, 2**16); make yours unique; "
+        "if None, we use a mix of time and process id",
+    )
+    parser.add_argument(
+        "-nbatch",
+        type=int,
+        default=100,
+        help="size of batches which execute leaky code; reduce to cut memory usage",
+    )
+    parser.add_argument(
+        "-processes",
+        type=int,
+        default=1,
+        help="maximum number of processes for generating toys; "
+        "also capped by your cpu count",
+    )
+    parser.add_argument(
+        "-calculator",
+        type=str,
+        default="frequentist",
+        help="calculator type in "
+        "{frequentist, hybrid, asymptotic, asimov}; "
+        "see bailed_roostats.CalculatorType; "
+        "frequentist is standard with toys; "
+        "asymptotic is standard without toys",
+    )
+    parser.add_argument(
+        "-statistic",
+        type=str,
+        default="profile_likelihood_one_sided",
+        help="test statistic type from bailed_roostats.TestStatistic",
+    )
+    parser.add_argument(
+        "-channel",
+        type=str,
+        default="DR-WHO",
+        help="channel name for the `output' tex table",
+    )
+    parser.add_argument(
+        "-cl", type=float, default=0.95, help="level for 'upper limits', in (0, 1)"
+    )
+    parser.add_argument(
+        "-use_cls", type=bool, default=True, help="use CLs for limits; else use CLs+b"
+    )
 
     args = parser.parse_args()
 
@@ -208,7 +247,7 @@ def main():
 
 
 def execute(args):
-    """ Run our operations for given args namespace, as produced by main(). """
+    """Run our operations for given args namespace, as produced by main()."""
     do_invert = Operation.invert in args.operations
     do_test = Operation.test in args.operations
     do_dump = Operation.dump in args.operations
@@ -235,7 +274,7 @@ def execute(args):
 
 
 def invert(args):
-    """ Return a HypoTestInverterResult for args. """
+    """Return a HypoTestInverterResult for args."""
     from bailed_roostats import hypo_test_inversion
 
     return hypo_test_inversion(
@@ -248,11 +287,12 @@ def invert(args):
         batch_size=args.nbatch,
         processes=args.processes,
         calculatorType=args.calculator,
-        testStatType=args.statistic)
+        testStatType=args.statistic,
+    )
 
 
 def test(args):
-    """ Return a HypoTestResult for args. """
+    """Return a HypoTestResult for args."""
     from bailed_roostats import FitType, hypo_test
 
     # Flip some seed bits to give different context from `invert'.
@@ -267,11 +307,12 @@ def test(args):
         batch_size=args.nbatch,
         processes=args.processes,
         calculatorType=args.calculator,
-        testStatType=args.statistic)
+        testStatType=args.statistic,
+    )
 
 
 def dump(args, content):
-    """ Dump content to a pickle. """
+    """Dump content to a pickle."""
     filename = args.prefix + "_dump.pickle"
     with open(filename, "wb") as file_:
         pickle.dump(content, file_)
@@ -279,7 +320,7 @@ def dump(args, content):
 
 
 def load(args):
-    """ Generate (seed_to_filename, invert_dumps, test_dumps) from args. """
+    """Generate (seed_to_filename, invert_dumps, test_dumps) from args."""
     LOGGER.info("Loading %d inputs", len(args.load))
     for filename in args.load:
         try:
@@ -297,11 +338,11 @@ def load(args):
 
 
 def merge(args, invert_dumps, test_dumps):
-    """ Return dumped merged results comprising loaded and given results.
+    """Return dumped merged results comprising loaded and given results.
 
-        invert_dumps or test_dumps may be None.
+    invert_dumps or test_dumps may be None.
 
-        Avoid leaky merging with bailed batches.
+    Avoid leaky merging with bailed batches.
     """
     from bailed_roostats import bailmap, cascade, root_loads
 
@@ -315,9 +356,7 @@ def merge(args, invert_dumps, test_dumps):
         # Add results which may have been made by `invert' and `test' args.
         dump_this_call = args.prefix + "_dump.pickle"
         seed_to_filename = {args.seed: dump_this_call}
-        specs = itertools.chain(
-            specs,
-            [(seed_to_filename, invert_dumps, test_dumps)])
+        specs = itertools.chain(specs, [(seed_to_filename, invert_dumps, test_dumps)])
 
     # First merge large batches of smaller results.
     batches = more_itertools.chunked(specs, args.nbatch)
@@ -336,16 +375,17 @@ def merge(args, invert_dumps, test_dumps):
 
 
 def merge_batch(specs):
-    """ Merge a batch of results. Return dumps and seed map.
+    """Merge a batch of results. Return dumps and seed map.
 
-        specs contains (seed_to_filename, invert_dumps, test_dumps) trios.
-        Each seed_to_filename refers to objects merged into the results.
+    specs contains (seed_to_filename, invert_dumps, test_dumps) trios.
+    Each seed_to_filename refers to objects merged into the results.
 
-        invert_dumps or test_dumps may be None for missing entries.
+    invert_dumps or test_dumps may be None for missing entries.
 
-        Beware: ROOT crashes when attempting to merge non-toy results.
+    Beware: ROOT crashes when attempting to merge non-toy results.
     """
     from bailed_roostats import root_dumps, root_loads
+
     seed_to_filename = {}
     invert_result = None
     test_result = None
@@ -358,8 +398,10 @@ def merge_batch(specs):
         # Catch repeated seeds.
         for seed_j, filename_j in seed_to_filename_i.items():
             if seed_j in seed_to_filename:
-                raise ValueError("Seed `%d' reused in inputs %r and %r."
-                                % (seed_j, seed_to_filename[seed_j], filename_j))
+                raise ValueError(
+                    "Seed `%d' reused in inputs %r and %r."
+                    % (seed_j, seed_to_filename[seed_j], filename_j)
+                )
 
         seed_to_filename.update(seed_to_filename_i)
 
@@ -382,7 +424,7 @@ def merge_batch(specs):
 
 
 def output(args, invert_dumps, test_dumps):
-    """ Output plots and tables. """
+    """Output plots and tables."""
     import ROOT
     from bailed_roostats import CalculatorType, TOY_CALCULATORS, root_loads
 
@@ -398,14 +440,13 @@ def output(args, invert_dumps, test_dumps):
 
     # Log result points and ntoys
     if args.calculator in TOY_CALCULATORS:
-        LOGGER.info("HypoTestInverterResult: %s", invert_result )
+        LOGGER.info("HypoTestInverterResult: %s", invert_result)
         LOGGER.info("i,x,nulltoys,alttoys")
         for i in range(invert_result.ArraySize()):
             result_i = invert_result.GetResult(i)
             nulltoys = result_i.GetNullDistribution().GetSize()
             alttoys = result_i.GetAltDistribution().GetSize()
-            LOGGER.info("%d,%g,%d,%d",
-                        i, invert_result.GetXValue(i), nulltoys, alttoys)
+            LOGGER.info("%d,%g,%d,%d", i, invert_result.GetXValue(i), nulltoys, alttoys)
 
         LOGGER.info("HypoTestResult: %s", test_result)
         LOGGER.info("nulltoys,alttoys")
@@ -448,11 +489,16 @@ def output(args, invert_dumps, test_dumps):
         blo = invert_result.CLb(ihi - 1)
 
         alpha = (bhi - blo) / (xhi - xlo)
-        beta = bhi - alpha*xhi
-        clb = alpha*visobs + beta
+        beta = bhi - alpha * xhi
+        clb = alpha * visobs + beta
     else:
-        LOGGER.warning("Upper limit %r out of range of poi values [%r ... %r]; "
-                       "setting CLb to 0.", visobs, xs[0], xs[-1])
+        LOGGER.warning(
+            "Upper limit %r out of range of poi values [%r ... %r]; "
+            "setting CLb to 0.",
+            visobs,
+            xs[0],
+            xs[-1],
+        )
         clb = 0.0
 
     # Dump plots
@@ -500,19 +546,20 @@ def output(args, invert_dumps, test_dumps):
 
 
 def textable(
-        channel,
-        cl,
-        use_cls,
-        statistic,
-        calculator,
-        visobs,
-        visxsec,
-        visexp,
-        visexp_up,
-        visexp_down,
-        clb,
-        nullp):
-    """ Return a string tex table displaying configuration and and results. """
+    channel,
+    cl,
+    use_cls,
+    statistic,
+    calculator,
+    visobs,
+    visxsec,
+    visexp,
+    visexp_up,
+    visexp_down,
+    clb,
+    nullp,
+):
+    """Return a string tex table displaying configuration and and results."""
     import ROOT
     from bailed_roostats import CalculatorType, TestStatistic
 
@@ -529,10 +576,10 @@ def textable(
         r"\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc}\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
         r"\textbf{Signal channel} &\n "
-        r"$\langle\epsilon\mathrm{\sigma}\rangle_\mathrm{obs}^{%d}$[fb] &\n " % level +
-        r"$S_\mathrm{obs}^{%d}$\n & " % level +
-        r"$S_\mathrm{exp}^{%d}$\n & " % level +
-        r"$\mathrm{CL_b}$ &\n "
+        r"$\langle\epsilon\mathrm{\sigma}\rangle_\mathrm{obs}^{%d}$[fb] &\n " % level
+        + r"$S_\mathrm{obs}^{%d}$\n & " % level
+        + r"$S_\mathrm{exp}^{%d}$\n & " % level
+        + r"$\mathrm{CL_b}$ &\n "
         r"$p(s=0)$ ($Z$) \\\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
     )
@@ -544,12 +591,12 @@ def textable(
     significancecap = ROOT.StatTools.GetSigma(nullpcap)
 
     table += (
-        r"%s & " % channel +
-        r"$%.2f$ & " % visxsec +
-        r"$%.1f$ & " % visobs +
-        r"$%.1f^{%+.1f}_{%+.1f}$ & " % (visexp, errup, errdown) +
-        r"$%.2f$ & " % clb +
-        r"$%.2f~(%.2f)$ \\\n " % (nullpcap, significancecap)
+        r"%s & " % channel
+        + r"$%.2f$ & " % visxsec
+        + r"$%.1f$ & " % visobs
+        + r"$%.1f^{%+.1f}_{%+.1f}$ & " % (visexp, errup, errdown)
+        + r"$%.2f$ & " % clb
+        + r"$%.2f~(%.2f)$ \\\n " % (nullpcap, significancecap)
     )
 
     # Footer
@@ -560,22 +607,26 @@ def textable(
 
     # Test statisric text; meaning taken from RooStats docs and source code.
     if statistic is TestStatistic.simple_likelihood_ratio:
-        statistic_text = (r"All results use the simple likelihood ratio "
-                          r"test statistic. ")
+        statistic_text = (
+            r"All results use the simple likelihood ratio " r"test statistic. "
+        )
     elif statistic is TestStatistic.profile_likelihood_ratio:
-        statistic_text = (r"All results use the profile likelihood ratio "
-                          r"test statistic.")
+        statistic_text = (
+            r"All results use the profile likelihood ratio " r"test statistic."
+        )
     elif statistic is TestStatistic.profile_likelihood:
-        statistic_text = (r"All results use the profile likelihood "
-                          r"test statistic.")
+        statistic_text = r"All results use the profile likelihood " r"test statistic."
     elif statistic is TestStatistic.profile_likelihood_one_sided:
-        statistic_text = (r"Upper limits use the one-sided profile likelihood "
-                          r"test statistic.\n "
-                          r"The discovery p-value uses a profile likelihood "
-                          r"test statistic in a one-sided test.")
+        statistic_text = (
+            r"Upper limits use the one-sided profile likelihood "
+            r"test statistic.\n "
+            r"The discovery p-value uses a profile likelihood "
+            r"test statistic in a one-sided test."
+        )
     else:
-        raise ValueError("statistic must be in bailed_roostats.TestStatistic; "
-                         "got %r" % statistic)
+        raise ValueError(
+            "statistic must be in bailed_roostats.TestStatistic; got %r" % statistic
+        )
 
     # Calculator text; meaning taken from RooStats docs
     if calculator is CalculatorType.frequentist:
@@ -589,17 +640,17 @@ def textable(
             r"parameters sampled from prior distributions"
         )
     elif calculator is CalculatorType.asymptotic:
-        calculator_text = (
-            r"their asymptotic approximation"
-        )
+        calculator_text = r"their asymptotic approximation"
     elif calculator is CalculatorType.asimov:
         calculator_text = (
             r"their asymptotic approximation with Asimov data obtained with "
             r"nuisance parameters set to their nominal values"
         )
     else:
-        raise ValueError("calculator must be in bailed_roostats.CalculatorType; "
-                         "got %r" % calculator)
+        raise ValueError(
+            "calculator must be in bailed_roostats.CalculatorType; "
+            "got %r" % calculator
+        )
 
     table += (
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
@@ -607,41 +658,40 @@ def textable(
         r"\caption{\n "
         r"Model-independent fit results.\n "
         r"Left to right: the observed "
-        r"%d\%% upper limit on the visible cross-section\n " % level +
-        r"$\langle\epsilon\sigma\rangle_\mathrm{obs}^{%d}$,\n " % level +
-        r"its corresponding signal expectation "
-        r"$S_\mathrm{obs}^{%d}$,\n " % level +
-        r"expected %d\%% upper limits on the signal expectation " % level +
-        r"$S_\mathrm{exp}^{%d}$ as would be obtained\n " % level +
-        r"were the data the background expectation or its "
+        r"%d\%% upper limit on the visible cross-section\n " % level
+        + r"$\langle\epsilon\sigma\rangle_\mathrm{obs}^{%d}$,\n " % level
+        + r"its corresponding signal expectation "
+        r"$S_\mathrm{obs}^{%d}$,\n " % level
+        + r"expected %d\%% upper limits on the signal expectation " % level
+        + r"$S_\mathrm{exp}^{%d}$ as would be obtained\n " % level
+        + r"were the data the background expectation or its "
         r"$\pm 1\sigma$ variations,\n "
         r"$\mathrm{CL_b}$ evaluated with the "
         r"signal expectation set to its observed upper limit,\n "
         r"and the discovery $p$-value $p(s = 0)$ capped at 0.5,\n "
         r"with its equivalent significance.\n "
-        r"Limits use the %s prescription.\n " % prescription +
-        r"%s\n " % statistic_text +
-        r"All p-values are estimated by\n %s.\n " % calculator_text +
-        r"}\n "
-        r"\label{tab:results.discoxsec.%s}\n " % channel +
-        r"\end{table}\n "
+        r"Limits use the %s prescription.\n " % prescription
+        + r"%s\n " % statistic_text
+        + r"All p-values are estimated by\n %s.\n " % calculator_text
+        + r"}\n "
+        r"\label{tab:results.discoxsec.%s}\n " % channel + r"\end{table}\n "
     )
     return table.replace("\\n\\", "\n\\").replace(r"\n ", "\n")
 
 
 def make_seed():
-    """ Return a seed in [0, 2**16) using process id and time.
+    """Return a seed in [0, 2**16) using process id and time.
 
-        In sequence, times will differ.
-        In parallel, process ids will differ.
+    In sequence, times will differ.
+    In parallel, process ids will differ.
 
-        Only 16 bits is pathetic, but TRandom3.SetSeed only uses the low 32 bits
-        of its argument, and we reserve the others for batched execution.
+    Only 16 bits is pathetic, but TRandom3.SetSeed only uses the low 32 bits
+    of its argument, and we reserve the others for batched execution.
     """
-    hash_ = hash((0xd1ce, os.getpid(), time.time()))
+    hash_ = hash((0xD1CE, os.getpid(), time.time()))
     hash_ ^= hash_ >> 32
     hash_ ^= hash_ >> 16
-    return hash_ & (2**16 - 1)
+    return hash_ & (2 ** 16 - 1)
 
 
 if __name__ == "__main__":
