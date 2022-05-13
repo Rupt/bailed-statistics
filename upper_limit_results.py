@@ -628,7 +628,7 @@ def textable(
     if use_cls:
         prescription = r"$\mathrm{CLs}$"
     else:
-        prescription = r"$\mathrm{CLs+b}$"
+        prescription = r"$\mathrm{CLs\!+\!}$"
 
     # Test statisric text; meaning taken from RooStats docs and source code.
     if statistic is TestStatistic.simple_likelihood_ratio:
