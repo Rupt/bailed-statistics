@@ -28,14 +28,15 @@
 
 # Fill me in!
 HISTFITTER_INSTALL_PATH=your_histfitter_install_path
+# e.g. /usera/tombs/2ljets/HistFitter66/
 
 
 # Set an environment.
 setupATLAS
-lsetup "lsetup \"views LCG_99python2 x86_64-centos7-gcc8-opt\""
+lsetup "views LCG_99python2 x86_64-centos7-gcc8-opt"
 source ${HISTFITTER_INSTALL_PATH}/setup.sh
 
-./upper_limit_results.py invert test output \
+./upper_limit_results.py invert test output dump \
     -filename examples/tutorial_SPlusB_combined_NormalMeasurement_model.root \
     -prefix examples/tutorial \
     -channel SS \

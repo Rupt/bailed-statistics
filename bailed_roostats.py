@@ -43,18 +43,15 @@ Also implicated is no free after ModelConfig.GetSnapshot or RooArgSet.snapshot,
 as well as allocations in .Add and .Append *Result methods.
 
 """
-from __future__ import print_function, division
+from __future__ import division, print_function
 
 import enum
 import itertools
-import functools
 import logging
-import more_itertools
 import multiprocessing
 import tempfile
 
-from six.moves import xrange as range
-from six.moves import map
+import more_itertools
 
 # Kick HistFitter and ROOT in just the right way.
 import ROOT
@@ -201,12 +198,17 @@ def hypo_test_inversion(
     )
 
     if calculatorType not in TOY_CALCULATORS:
-        return hypo_test_inversion_no_toys(workspace_args, fixed_args, points, seed)
+        return hypo_test_inversion_no_toys(
+            workspace_args, fixed_args, points, seed
+        )
 
     # Build generator for point, nbatch pairs.
-    batches = lambda point: ((point, n) for n in batch(ntoys, batch_size))
+    def batches(point):
+        return ((point, n) for n in batch(ntoys, batch_size))
 
-    point_nbatches = itertools.chain(*(batches(point) for point in linspace(*points)))
+    point_nbatches = itertools.chain(
+        *(batches(point) for point in linspace(*points))
+    )
 
     specs = (
         (workspace_args, fixed_args, point_nbatch, seed + i)
@@ -220,7 +222,10 @@ def hypo_test_inversion(
     # chunks, then reduce pairs of the larger merged results.
     batches = more_itertools.chunked(inversions, batch_size)
     merges = bailmap(hypo_test_inversion_merge, batches)
-    reduction = lambda a, b: next(bailmap(hypo_test_inversion_merge, [(a, b)], 1))
+
+    def reduction(a, b):
+        return next(bailmap(hypo_test_inversion_merge, [(a, b)], 1))
+
     return cascade(reduction, merges)
 
 
@@ -280,13 +285,15 @@ def hypo_test(
         do_upper_limit = True
     else:
         raise ValueError(
-            "fit_type must be FitType.{discovery or exclusion};" "got %r" % fit_type
+            "fit_type must be FitType.{discovery or exclusion};"
+            "got %r" % fit_type
         )
 
     # Mimic logic from HistFitter RooStats.get_htr
     if (
         not do_upper_limit
-        and testStatType.value is TestStatistic.profile_likelihood_one_sided.value
+        and testStatType.value
+        is TestStatistic.profile_likelihood_one_sided.value
     ):
         testStatType = TestStatistic.profile_likelihood
 
@@ -322,7 +329,10 @@ def hypo_test(
     # chunks, then reduce pairs of the larger merged results.
     batches = more_itertools.chunked(tests, batch_size)
     merges = bailmap(hypo_test_merge, batches)
-    reduction = lambda a, b: next(bailmap(hypo_test_merge, [(a, b)], 1))
+
+    def reduction(a, b):
+        return next(bailmap(hypo_test_merge, [(a, b)], 1))
+
     return cascade(reduction, merges)
 
 
@@ -635,8 +645,8 @@ def init_seed(random_seed):
     """Return a 32 bit random seed for batched execution."""
     # Move user seed to high half of 32 bits, start counter in low half; mix so
     # adjacent seeds don't clash if the counter overflows.
-    assert 0 <= random_seed < 2 ** 16
-    seed = (random_seed * 0x9E37) & (2 ** 16 - 1)
+    assert 0 <= random_seed < 2**16
+    seed = (random_seed * 0x9E37) & (2**16 - 1)
     return (seed << 16) + 1
 
 
@@ -657,7 +667,8 @@ def get_workspace(filename, workspacename):
         workspace.GetName()
     except ReferenceError:
         raise IOError(
-            "Failed to load workspace %r from file %r" % (workspacename, filename)
+            "Failed to load workspace %r from file %r"
+            % (workspacename, filename)
         )
 
     ROOT.Util.resetAllErrors(workspace)
@@ -673,7 +684,9 @@ def set_poi(workspace, poiname):
     try:
         poi.GetName()
     except ReferenceError:
-        raise IOError("Failed to get POI %r from workspace %r" % (poiname, workspace))
+        raise IOError(
+            "Failed to get POI %r from workspace %r" % (poiname, workspace)
+        )
     model_config = workspace.obj("ModelConfig")
     model_config.SetParametersOfInterest(ROOT.RooArgSet(poi))
     model_config.GetNuisanceParameters().remove(poi)
@@ -752,7 +765,10 @@ def test_seed_roo_random():
 
 def test_cascade():
     """Assert that cascade works as intended."""
-    add = lambda a, b: a + b
+
+    def add(a, b):
+        return a + b
+
     data = list(range(-5123, 1234, 7))
     assert cascade(add, data) == sum(data)
     assert cascade(add, data[1:]) == sum(data[1:])

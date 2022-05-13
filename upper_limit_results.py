@@ -88,19 +88,19 @@ in English.
 Rupert Tombs 2021
 
 """
-from __future__ import print_function, division
+from __future__ import division, print_function
 
 import argparse
 import bisect
 import enum
-import functools
 import itertools
 import logging
-import more_itertools
 import multiprocessing
 import os
-import time
 import pickle
+import time
+
+import more_itertools
 
 # ROOT imports are deferred to stop it clobbering our -h help menu.
 
@@ -145,9 +145,14 @@ def main():
         "`dump' saves results to *_dump.pickle; "
         "`output' saves the plots and table",
     )
-    parser.add_argument("-lumi", type=float, help="luminosity in inverse femtobarns")
     parser.add_argument(
-        "-prefix", type=str, default="upper_limit", help="output file paths' prefix"
+        "-lumi", type=float, help="luminosity in inverse femtobarns"
+    )
+    parser.add_argument(
+        "-prefix",
+        type=str,
+        default="upper_limit",
+        help="output file paths' prefix",
     )
     parser.add_argument(
         "-load",
@@ -159,7 +164,10 @@ def main():
     )
     parser.add_argument("-filename", type=str, help="workspace file path")
     parser.add_argument(
-        "-workspace", type=str, default="combined", help="workspace name in its file"
+        "-workspace",
+        type=str,
+        default="combined",
+        help="workspace name in its file",
     )
     parser.add_argument(
         "-poi", type=str, default="mu_SIG", help="parameter of interest name"
@@ -218,10 +226,16 @@ def main():
         help="channel name for the `output' tex table",
     )
     parser.add_argument(
-        "-cl", type=float, default=0.95, help="level for 'upper limits', in (0, 1)"
+        "-cl",
+        type=float,
+        default=0.95,
+        help="level for 'upper limits', in (0, 1)",
     )
     parser.add_argument(
-        "-use_cls", type=bool, default=True, help="use CLs for limits; else use CLs+b"
+        "-use_cls",
+        type=bool,
+        default=True,
+        help="use CLs for limits; else use CLs+b",
     )
 
     args = parser.parse_args()
@@ -331,7 +345,7 @@ def load(args):
                     seed = [seed]
                 seed_to_filename = {seed_i: filename for seed_i in seed}
                 yield (seed_to_filename, invert_dumps, test_dumps)
-        except:
+        except BaseException:
             # Invalid file, but we cannot raise here because that would just
             # end the generator; None might give a useful error later.
             yield None
@@ -344,7 +358,7 @@ def merge(args, invert_dumps, test_dumps):
 
     Avoid leaky merging with bailed batches.
     """
-    from bailed_roostats import bailmap, cascade, root_loads
+    from bailed_roostats import bailmap, cascade
 
     if not args.load:
         return args.seed, invert_dumps, test_dumps
@@ -356,14 +370,18 @@ def merge(args, invert_dumps, test_dumps):
         # Add results which may have been made by `invert' and `test' args.
         dump_this_call = args.prefix + "_dump.pickle"
         seed_to_filename = {args.seed: dump_this_call}
-        specs = itertools.chain(specs, [(seed_to_filename, invert_dumps, test_dumps)])
+        specs = itertools.chain(
+            specs, [(seed_to_filename, invert_dumps, test_dumps)]
+        )
 
     # First merge large batches of smaller results.
     batches = more_itertools.chunked(specs, args.nbatch)
     out = bailmap(merge_batch, batches, args.processes)
 
     # Second merge larger results in a pairwise fashion.
-    reduction = lambda a, b: next(bailmap(merge_batch, [(a, b)], 1))
+    def reduction(a, b):
+        return next(bailmap(merge_batch, [(a, b)], 1))
+
     seed_to_filename, invert_dumps, test_dumps = cascade(reduction, out)
 
     # Our seed contains all input seeds
@@ -426,7 +444,8 @@ def merge_batch(specs):
 def output(args, invert_dumps, test_dumps):
     """Output plots and tables."""
     import ROOT
-    from bailed_roostats import CalculatorType, TOY_CALCULATORS, root_loads
+
+    from bailed_roostats import TOY_CALCULATORS, CalculatorType, root_loads
 
     assert args.lumi > 0
 
@@ -446,7 +465,9 @@ def output(args, invert_dumps, test_dumps):
             result_i = invert_result.GetResult(i)
             nulltoys = result_i.GetNullDistribution().GetSize()
             alttoys = result_i.GetAltDistribution().GetSize()
-            LOGGER.info("%d,%g,%d,%d", i, invert_result.GetXValue(i), nulltoys, alttoys)
+            LOGGER.info(
+                "%d,%g,%d,%d", i, invert_result.GetXValue(i), nulltoys, alttoys
+            )
 
         LOGGER.info("HypoTestResult: %s", test_result)
         LOGGER.info("nulltoys,alttoys")
@@ -515,7 +536,9 @@ def output(args, invert_dumps, test_dumps):
         outplotname,
         ".pdf",
     )
-    plotnames = os.path.dirname(outplotname) + "/*" + os.path.basename(outplotname)
+    plotnames = (
+        os.path.dirname(outplotname) + "/*" + os.path.basename(outplotname)
+    )
     LOGGER.info("Wrote upper limit plots '%s*.pdf'.", plotnames)
 
     # Test
@@ -561,6 +584,7 @@ def textable(
 ):
     """Return a string tex table displaying configuration and and results."""
     import ROOT
+
     from bailed_roostats import CalculatorType, TestStatistic
 
     level = int(100 * cl)
@@ -576,7 +600,8 @@ def textable(
         r"\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc}\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
         r"\textbf{Signal channel} &\n "
-        r"$\langle\epsilon\mathrm{\sigma}\rangle_\mathrm{obs}^{%d}$[fb] &\n " % level
+        r"$\langle\epsilon\mathrm{\sigma}\rangle_\mathrm{obs}^{%d}$[fb] &\n "
+        % level
         + r"$S_\mathrm{obs}^{%d}$\n & " % level
         + r"$S_\mathrm{exp}^{%d}$\n & " % level
         + r"$\mathrm{CL_b}$ &\n "
@@ -615,7 +640,9 @@ def textable(
             r"All results use the profile likelihood ratio " r"test statistic."
         )
     elif statistic is TestStatistic.profile_likelihood:
-        statistic_text = r"All results use the profile likelihood " r"test statistic."
+        statistic_text = (
+            r"All results use the profile likelihood " r"test statistic."
+        )
     elif statistic is TestStatistic.profile_likelihood_one_sided:
         statistic_text = (
             r"Upper limits use the one-sided profile likelihood "
@@ -625,7 +652,8 @@ def textable(
         )
     else:
         raise ValueError(
-            "statistic must be in bailed_roostats.TestStatistic; got %r" % statistic
+            "statistic must be in bailed_roostats.TestStatistic; got %r"
+            % statistic
         )
 
     # Calculator text; meaning taken from RooStats docs
@@ -658,21 +686,21 @@ def textable(
         r"\caption{\n "
         r"Model-independent fit results.\n "
         r"Left to right: the observed "
-        r"%d\%% upper limit on the visible cross-section\n " % level
+        r"$%d\%%$ upper limit on the visible cross-section\n " % level
         + r"$\langle\epsilon\sigma\rangle_\mathrm{obs}^{%d}$,\n " % level
         + r"its corresponding signal expectation "
         r"$S_\mathrm{obs}^{%d}$,\n " % level
-        + r"expected %d\%% upper limits on the signal expectation " % level
+        + r"expected $%d\%%$ upper limits on the signal expectation " % level
         + r"$S_\mathrm{exp}^{%d}$ as would be obtained\n " % level
-        + r"were the data the background expectation or its "
-        r"$\pm 1\sigma$ variations,\n "
-        r"$\mathrm{CL_b}$ evaluated with the "
+        + r"were the test statistic given by its central or "
+        r"$\pm 1$-sigma variations,\n "
+        r"$\mathrm{CL}b$ evaluated with the "
         r"signal expectation set to its observed upper limit,\n "
-        r"and the discovery $p$-value $p(s = 0)$ capped at 0.5,\n "
+        r"and the discovery $p$-value $p(s = 0)$ capped at $0.5$,\n "
         r"with its equivalent significance.\n "
         r"Limits use the %s prescription.\n " % prescription
         + r"%s\n " % statistic_text
-        + r"All p-values are estimated by\n %s.\n " % calculator_text
+        + r"All $p$-values are estimated by\n %s.\n " % calculator_text
         + r"}\n "
         r"\label{tab:results.discoxsec.%s}\n " % channel + r"\end{table}\n "
     )
@@ -691,7 +719,7 @@ def make_seed():
     hash_ = hash((0xD1CE, os.getpid(), time.time()))
     hash_ ^= hash_ >> 32
     hash_ ^= hash_ >> 16
-    return hash_ & (2 ** 16 - 1)
+    return hash_ & (2**16 - 1)
 
 
 if __name__ == "__main__":
