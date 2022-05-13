@@ -55,6 +55,8 @@ import more_itertools
 
 # Kick HistFitter and ROOT in just the right way.
 import ROOT
+from six.moves import map
+from six.moves import xrange as range
 
 ROOT.gSystem.Load("libSusyFitter.so")
 import ROOT.ConfigMgr
