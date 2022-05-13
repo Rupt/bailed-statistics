@@ -604,7 +604,7 @@ def textable(
         % level
         + r"$S_\mathrm{obs}^{%d}$\n & " % level
         + r"$S_\mathrm{exp}^{%d}$\n & " % level
-        + r"$\mathrm{CL_b}$ &\n "
+        + r"$\mathrm{CLb}$ &\n "
         r"$p(s=0)$ ($Z$) \\\n "
         r"\noalign{\smallskip}\hline\noalign{\smallskip}\n "
     )
@@ -626,9 +626,9 @@ def textable(
 
     # Footer
     if use_cls:
-        prescription = r"$\mathrm{CL_s}$"
+        prescription = r"$\mathrm{CLs}$"
     else:
-        prescription = r"$\mathrm{CL_{s + b}}$"
+        prescription = r"$\mathrm{CLs+b}$"
 
     # Test statisric text; meaning taken from RooStats docs and source code.
     if statistic is TestStatistic.simple_likelihood_ratio:
@@ -694,7 +694,7 @@ def textable(
         + r"$S_\mathrm{exp}^{%d}$ as would be obtained\n " % level
         + r"were the test statistic given by its central or "
         r"$\pm 1$-sigma variations,\n "
-        r"$\mathrm{CL}b$ evaluated with the "
+        r"$\mathrm{CLb}$ evaluated with the "
         r"signal expectation set to its observed upper limit,\n "
         r"and the discovery $p$-value $p(s = 0)$ capped at $0.5$,\n "
         r"with its equivalent significance.\n "
